@@ -6,6 +6,7 @@ from models import TSEncoder
 from models.losses import hierarchical_contrastive_loss
 from utils import take_per_row, split_with_nan, centerize_vary_length_series, torch_pad_nan
 import math
+import wandb
 
 class TS2Vec:
     '''The TS2Vec model'''
@@ -72,8 +73,12 @@ class TS2Vec:
         assert train_data.ndim == 3
         
         if n_iters is None and n_epochs is None:
-            n_iters = 200 if train_data.size <= 100000 else 600  # default param for n_iters
+            n_iters = 200 if train_data.size <= 100000 else 600  # size refers to total_rows*total_cols (not just rows)
         
+        print("Number of iterations:", n_iters)
+        wandb.log({"train/n_iters": n_iters})
+        if n_epochs: wandb.log({"train/n_epochs": n_epochs})
+
         if self.max_train_length is not None:
             sections = train_data.shape[1] // self.max_train_length
             if sections >= 2:
@@ -99,6 +104,8 @@ class TS2Vec:
             cum_loss = 0
             n_epoch_iters = 0
             
+            wandb.log({"train/epoch": self.n_epochs})
+
             interrupted = False
             for batch in train_loader:
                 if n_iters is not None and self.n_iters >= n_iters:
@@ -132,7 +139,7 @@ class TS2Vec:
                     out2,
                     temporal_unit=self.temporal_unit
                 )
-                
+            
                 loss.backward()
                 optimizer.step()
                 self.net.update_parameters(self._net)
@@ -144,7 +151,10 @@ class TS2Vec:
                 
                 if self.after_iter_callback is not None:
                     self.after_iter_callback(self, loss.item())
-            
+
+                wandb.log({"train/loss": loss.item(), "train/iter": n_epoch_iters,
+                           "train/total_iter": self.n_iters})
+
             if interrupted:
                 break
             
@@ -157,6 +167,8 @@ class TS2Vec:
             if self.after_epoch_callback is not None:
                 self.after_epoch_callback(self, cum_loss)
             
+            wandb.log({"train/epoch_loss": cum_loss})
+
         return loss_log
     
     def _eval_with_pooling(self, x, mask=None, slicing=None, encoding_window=None):
@@ -306,7 +318,13 @@ class TS2Vec:
         Args:
             fn (str): filename.
         '''
-        torch.save(self.net.state_dict(), fn)
+        torch.save(
+            {
+                "state_dict": self.net.state_dict(),
+                "n_epochs": self.n_epochs,
+                "n_iters": self.n_iters
+            }, fn
+        )
     
     def load(self, fn):
         ''' Load the model from a file.
@@ -314,6 +332,7 @@ class TS2Vec:
         Args:
             fn (str): filename.
         '''
-        state_dict = torch.load(fn, map_location=self.device)
-        self.net.load_state_dict(state_dict)
+        ckpt = torch.load(fn, map_location=self.device)
+        self.net.load_state_dict(ckpt["state_dict"])
+        print("Loaded model from epochs {} iters {}".format(ckpt["n_epochs"], ckpt["n_iters"]))
     

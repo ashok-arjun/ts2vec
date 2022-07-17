@@ -7,8 +7,9 @@ import time
 import datetime
 from ts2vec import TS2Vec
 import tasks
+import wandb
 import datautils
-from utils import init_dl_program, name_with_datetime, pkl_save, data_dropout
+from utils import init_dl_program, name_with_datetime, pkl_save, data_dropout, set_seed
 
 def save_checkpoint_callback(
     save_every=1,
@@ -36,13 +37,32 @@ if __name__ == '__main__':
     parser.add_argument('--save-every', type=int, default=None, help='Save the checkpoint every <save_every> iterations/epochs')
     parser.add_argument('--seed', type=int, default=None, help='The random seed')
     parser.add_argument('--max-threads', type=int, default=None, help='The maximum allowed number of threads used by this process')
+    parser.add_argument('--train', action="store_true", help='Whether to perform evaluation after training')
     parser.add_argument('--eval', action="store_true", help='Whether to perform evaluation after training')
     parser.add_argument('--irregular', type=float, default=0, help='The ratio of missing observations (defaults to 0)')
+    
+    # Custom
+    parser.add_argument('--wandb_run_name', type=str, help='device ids of multile gpus')
+    parser.add_argument('--step_lrs', action='store_true', help='device ids of multile gpus')
+    parser.add_argument('--step_lrs_patience', type=int, default=5, help='device ids of multile gpus')
+    parser.add_argument('--step_lrs_alpha', type=float, default=0.1, help='device ids of multile gpus')
+    parser.add_argument('--step_lrs_cutoff', type=float, default=1e-9, help='device ids of multile gpus')
+    parser.add_argument('--load_feats', action='store_true', help='device ids of multile gpus')
+    parser.add_argument('--target_col_indices', nargs='+', type=int, default=[])
+    parser.add_argument('--load_ckpt', type=str, help='device ids of multile gpus')
+
     args = parser.parse_args()
     
+    if not args.wandb_run_name:
+        args.wandb_run_name = args.run_name
+
+    wandb.init(entity="arjunashok", project="ts2vec", config=vars(args), name=args.wandb_run_name)
+
     print("Dataset:", args.dataset)
     print("Arguments:", str(args))
     
+    set_seed(args.seed)
+
     device = init_dl_program(args.gpu, seed=args.seed, max_threads=args.max_threads)
     
     print('Loading data... ', end='')
@@ -56,9 +76,11 @@ if __name__ == '__main__':
         
     elif args.loader == 'forecast_csv':
         task_type = 'forecasting'
-        data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datautils.load_forecast_csv(args.dataset)
+        data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datautils.load_forecast_csv(args.dataset, load_feats=args.load_feats)
         train_data = data[:, train_slice]
-        
+        print("Shape of data:", data.shape)
+        print("Shape of train data:", train_data.shape)
+
     elif args.loader == 'forecast_csv_univar':
         task_type = 'forecasting'
         data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datautils.load_forecast_csv(args.dataset, univar=True)
@@ -113,26 +135,29 @@ if __name__ == '__main__':
     t = time.time()
     
     model = TS2Vec(
-        input_dims=train_data.shape[-1],
+        input_dims=train_data.shape[-1] - len(args.target_col_indices),
         device=device,
         **config
     )
-    loss_log = model.fit(
-        train_data,
-        n_epochs=args.epochs,
-        n_iters=args.iters,
-        verbose=True
-    )
-    model.save(f'{run_dir}/model.pkl')
+    if args.train:
+        loss_log = model.fit(
+            train_data,
+            n_epochs=args.epochs,
+            n_iters=args.iters,
+            verbose=True
+        )
+        model.save(f'{run_dir}/model.pkl')
+        t = time.time() - t
+        print(f"\nTraining time: {datetime.timedelta(seconds=t)}\n")
 
-    t = time.time() - t
-    print(f"\nTraining time: {datetime.timedelta(seconds=t)}\n")
+    if args.load_ckpt:
+        model.load(args.load_ckpt)
 
     if args.eval:
         if task_type == 'classification':
             out, eval_res = tasks.eval_classification(model, train_data, train_labels, test_data, test_labels, eval_protocol='svm')
         elif task_type == 'forecasting':
-            out, eval_res = tasks.eval_forecasting(model, data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols)
+            out, eval_res = tasks.eval_forecasting(model, data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices=args.target_col_indices)
         elif task_type == 'anomaly_detection':
             out, eval_res = tasks.eval_anomaly_detection(model, all_train_data, all_train_labels, all_train_timestamps, all_test_data, all_test_labels, all_test_timestamps, delay)
         elif task_type == 'anomaly_detection_coldstart':

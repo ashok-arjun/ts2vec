@@ -1,11 +1,12 @@
 import numpy as np
 import time
+import wandb
 from . import _eval_protocols as eval_protocols
 
 def generate_pred_samples(features, data, pred_len, drop=0):
     n = data.shape[1]
     features = features[:, :-pred_len]
-    labels = np.stack([ data[:, i:1+n+i-pred_len] for i in range(pred_len)], axis=2)[:, 1:]
+    labels = np.stack([ data[:, i:1+n+i-pred_len] for i in range(pred_len)], axis=2)[:, 1:] # (1, feat.shape[1], pred_len, data.shape[2])
     features = features[:, drop:]
     labels = labels[:, drop:]
     return features.reshape(-1, features.shape[-1]), \
@@ -17,12 +18,24 @@ def cal_metrics(pred, target):
         'MAE': np.abs(pred - target).mean()
     }
     
-def eval_forecasting(model, data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols):
+def eval_forecasting(model, data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices):
     padding = 200
-    
+
+    if target_col_indices:
+        target_cols = target_col_indices
+        target_col_indices_positive = [x if x >= 0 else data.shape[2]+x for x in target_col_indices]
+        source_cols = [x for x in list(range(data.shape[2])) if x not in target_col_indices_positive]
+    else:
+        target_cols = list(range(0, data.shape[2]))
+        target_cols = target_cols[n_covariate_cols:]
+        source_cols = list(range(0, data.shape[2]))
+
+    encoding_data = data[:, :, source_cols]
+    print("Encoding data shape:", encoding_data.shape)
+
     t = time.time()
     all_repr = model.encode(
-        data,
+        encoding_data,
         casual=True,
         sliding_length=1,
         sliding_padding=padding,
@@ -34,10 +47,13 @@ def eval_forecasting(model, data, train_slice, valid_slice, test_slice, scaler, 
     valid_repr = all_repr[:, valid_slice]
     test_repr = all_repr[:, test_slice]
     
-    train_data = data[:, train_slice, n_covariate_cols:]
-    valid_data = data[:, valid_slice, n_covariate_cols:]
-    test_data = data[:, test_slice, n_covariate_cols:]
+    train_data = data[:, train_slice, target_cols]
+    valid_data = data[:, valid_slice, target_cols]
+    test_data = data[:, test_slice, target_cols]
     
+    print("Target columns:", target_cols)
+    print("Shape of train_data", train_data.shape)
+
     ours_result = {}
     lr_train_time = {}
     lr_infer_time = {}
@@ -59,23 +75,26 @@ def eval_forecasting(model, data, train_slice, valid_slice, test_slice, scaler, 
         test_pred = test_pred.reshape(ori_shape)
         test_labels = test_labels.reshape(ori_shape)
         
-        if test_data.shape[0] > 1:
-            test_pred_inv = scaler.inverse_transform(test_pred.swapaxes(0, 3)).swapaxes(0, 3)
-            test_labels_inv = scaler.inverse_transform(test_labels.swapaxes(0, 3)).swapaxes(0, 3)
-        else:
-            test_pred_inv = scaler.inverse_transform(test_pred)
-            test_labels_inv = scaler.inverse_transform(test_labels)
+        # if test_data.shape[0] > 1:
+        #     test_pred_inv = scaler.inverse_transform(test_pred.swapaxes(0, 3)).swapaxes(0, 3)
+        #     test_labels_inv = scaler.inverse_transform(test_labels.swapaxes(0, 3)).swapaxes(0, 3)
+        # else:
+        #     test_pred_inv = scaler.inverse_transform(test_pred)
+        #     test_labels_inv = scaler.inverse_transform(test_labels)
             
         out_log[pred_len] = {
             'norm': test_pred,
-            'raw': test_pred_inv,
+            # 'raw': test_pred_inv,
             'norm_gt': test_labels,
-            'raw_gt': test_labels_inv
+            # 'raw_gt': test_labels_inv
         }
         ours_result[pred_len] = {
             'norm': cal_metrics(test_pred, test_labels),
-            'raw': cal_metrics(test_pred_inv, test_labels_inv)
+            # 'raw': cal_metrics(test_pred_inv, test_labels_inv)
         }
+
+        for metric, value in ours_result[pred_len]['norm'].items():
+            wandb.log({"eval/{}/{}".format(pred_len, metric): value})
         
     eval_res = {
         'ours': ours_result,
