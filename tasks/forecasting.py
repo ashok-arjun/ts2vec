@@ -18,8 +18,8 @@ def cal_metrics(pred, target):
         'MAE': np.abs(pred - target).mean()
     }
     
-def eval_forecasting(model, data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices):
-    padding = 200
+def eval_forecasting(method, model, data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices, \
+    padding=200):
 
     if target_col_indices:
         target_cols = target_col_indices
@@ -34,13 +34,24 @@ def eval_forecasting(model, data, train_slice, valid_slice, test_slice, scaler, 
     print("Encoding data shape:", encoding_data.shape)
 
     t = time.time()
-    all_repr = model.encode(
-        encoding_data,
-        casual=True,
-        sliding_length=1,
-        sliding_padding=padding,
-        batch_size=256
-    )
+
+    if method == 'ts2vec':
+        all_repr = model.encode(
+            encoding_data,
+            casual=True,
+            sliding_length=1,
+            sliding_padding=padding,
+            batch_size=256
+        )
+    else:
+        all_repr = model.encode(
+            data,
+            mode='forecasting',
+            casual=True,
+            sliding_length=1,
+            sliding_padding=padding,
+            batch_size=256
+        )
     ts2vec_infer_time = time.time() - t
     
     train_repr = all_repr[:, train_slice]

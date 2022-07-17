@@ -1,3 +1,6 @@
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 import torch
 import numpy as np
 import argparse
@@ -5,11 +8,13 @@ import os
 import sys
 import time
 import datetime
-from ts2vec import TS2Vec
 import tasks
 import wandb
 import datautils
 from utils import init_dl_program, name_with_datetime, pkl_save, data_dropout, set_seed
+
+from ts2vec import TS2Vec
+from cost import CoST
 
 def save_checkpoint_callback(
     save_every=1,
@@ -41,6 +46,13 @@ if __name__ == '__main__':
     parser.add_argument('--eval', action="store_true", help='Whether to perform evaluation after training')
     parser.add_argument('--irregular', type=float, default=0, help='The ratio of missing observations (defaults to 0)')
     
+    # Method
+    parser.add_argument('--method', type=str, default="ts2vec", choices=["ts2vec", "cost"])
+
+    # CoST args
+    parser.add_argument('--kernels', type=int, nargs='+', default=[1, 2, 4, 8, 16, 32, 64, 128])
+    parser.add_argument('--alpha', type=float, default=0.0005)
+
     # Custom
     parser.add_argument('--wandb_run_name', type=str, help='device ids of multile gpus')
     parser.add_argument('--step_lrs', action='store_true', help='device ids of multile gpus')
@@ -53,16 +65,19 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     
+    run_name = args.method + '__' + args.dataset + '__' + name_with_datetime(args.run_name)
     if not args.wandb_run_name:
         args.wandb_run_name = args.run_name
 
     wandb.init(entity="arjunashok", project="ts2vec", config=vars(args), name=args.wandb_run_name)
 
+    print("Method:", args.method)
     print("Dataset:", args.dataset)
     print("Arguments:", str(args))
     
     set_seed(args.seed)
 
+    method = args.method
     device = init_dl_program(args.gpu, seed=args.seed, max_threads=args.max_threads)
     
     print('Loading data... ', end='')
@@ -109,7 +124,6 @@ if __name__ == '__main__':
     else:
         raise ValueError(f"Unknown loader {args.loader}.")
         
-        
     if args.irregular > 0:
         if task_type == 'classification':
             train_data = data_dropout(train_data, args.irregular)
@@ -129,16 +143,25 @@ if __name__ == '__main__':
         unit = 'epoch' if args.epochs is not None else 'iter'
         config[f'after_{unit}_callback'] = save_checkpoint_callback(args.save_every, unit)
 
-    run_dir = 'training/' + args.dataset + '__' + name_with_datetime(args.run_name)
+    run_dir = 'training/' + run_name
     os.makedirs(run_dir, exist_ok=True)
     
     t = time.time()
     
-    model = TS2Vec(
-        input_dims=train_data.shape[-1] - len(args.target_col_indices),
-        device=device,
-        **config
-    )
+    if method == 'ts2vec':
+        model = TS2Vec(
+            input_dims=train_data.shape[-1] - len(args.target_col_indices),
+            device=device,
+            **config
+        )
+    elif method == 'cost':
+        model = CoST(
+            input_dims=train_data.shape[-1] - len(args.target_col_indices),
+            kernels=args.kernels,
+            alpha=args.alpha,
+            device=device,
+            **config
+        )
     if args.train:
         loss_log = model.fit(
             train_data,
@@ -157,7 +180,8 @@ if __name__ == '__main__':
         if task_type == 'classification':
             out, eval_res = tasks.eval_classification(model, train_data, train_labels, test_data, test_labels, eval_protocol='svm')
         elif task_type == 'forecasting':
-            out, eval_res = tasks.eval_forecasting(model, data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices=args.target_col_indices)
+            padding = 200 if method == 'ts2vec' else args.max_train_length - 1
+            out, eval_res = tasks.eval_forecasting(method, model, data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices=args.target_col_indices, padding=padding)
         elif task_type == 'anomaly_detection':
             out, eval_res = tasks.eval_anomaly_detection(model, all_train_data, all_train_labels, all_train_timestamps, all_test_data, all_test_labels, all_test_timestamps, delay)
         elif task_type == 'anomaly_detection_coldstart':
