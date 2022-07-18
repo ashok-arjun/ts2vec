@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import math
+import wandb
 import random
 from datetime import datetime
 import pickle
@@ -134,12 +135,28 @@ def _get_time_features(dt):
     ], axis=1).astype(np.float)
 
 
-def load_forecast_csv(name, univar=False, load_feats=False):
+def load_forecast_csv(name, univar=False, load_feats=False, start_date=None, end_date=None, train_slice_end=None, \
+                    valid_slice_end=None):
     filename = name if not load_feats else name + "_feats"
     data = pd.read_csv(f'datasets/{filename}.csv', index_col='date', parse_dates=True)
+    print("Dataset starts at {} and ends at {}".format(data.index[0], data.index[-1]))
+    wandb.log({"dataset/start_date":data.index[0], "dataset/end_date":data.index[-1], "dataset/length": len(data)})
+
+    if not start_date:
+        start_date = data.index[0]
+    if not end_date:
+        end_date = data.index[-1]
+    print("Startdate: {} Enddate: {}".format(start_date, end_date))
+    wandb.log({"dataset/given_start_date":start_date, "dataset/given_end_date":end_date})
+
+    data = data.loc[start_date:end_date]
+    print("Modified: Dataset starts at {} and ends at {}".format(data.index[0], data.index[-1]))
+    wandb.log({"dataset/modified_start_date":data.index[0], "dataset/modified_end_date":data.index[-1], \
+        "dataset/modified_length": len(data)})
+
     dt_embed = _get_time_features(data.index)
     n_covariate_cols = dt_embed.shape[-1]
-    
+
     if univar:
         if name in ('ETTh1', 'ETTh2', 'ETTm1', 'ETTm2'):
             data = data[['OT']]
@@ -149,7 +166,8 @@ def load_forecast_csv(name, univar=False, load_feats=False):
             data = data[['WetBulbCelsius']]
         else:
             data = data.iloc[:, -1:]
-        
+
+    data_pd = data.copy()        
     data = data.to_numpy()
     if name == 'ETTh1' or name == 'ETTh2':
         train_slice = slice(None, 12*30*24)
@@ -160,10 +178,25 @@ def load_forecast_csv(name, univar=False, load_feats=False):
         valid_slice = slice(12*30*24*4, 16*30*24*4)
         test_slice = slice(16*30*24*4, 20*30*24*4)
     else:
-        train_slice = slice(None, int(0.6 * len(data)))
-        valid_slice = slice(int(0.6 * len(data)), int(0.8 * len(data)))
-        test_slice = slice(int(0.8 * len(data)), None)
+        train_slice = slice(None, int(train_slice_end * len(data)))
+        valid_slice = slice(int(train_slice_end * len(data)), int(valid_slice_end * len(data)))
+        test_slice = slice(int(valid_slice_end * len(data)), None)
     
+    train_slice_pd = data_pd.iloc[train_slice]
+    valid_slice_pd = data_pd.iloc[valid_slice]
+    test_slice_pd = data_pd.iloc[test_slice]
+    
+    print("Start and end dates of splits:")
+    print("Train: Start: {} End: {}".format(train_slice_pd.index[0], train_slice_pd.index[-1]))
+    print("Valid: Start: {} End: {}".format(valid_slice_pd.index[0], valid_slice_pd.index[-1]))
+    print("Test: Start: {} End: {}".format(test_slice_pd.index[0], test_slice_pd.index[-1]))
+    wandb.log({"dataset/modified_start_date_train":train_slice_pd.index[0], \
+        "dataset/modified_end_date_train":train_slice_pd.index[-1], "dataset/modified_length_train": len(train_slice_pd)})
+    wandb.log({"dataset/modified_start_date_valid":valid_slice_pd.index[0], \
+        "dataset/modified_end_date_valid":valid_slice_pd.index[-1], "dataset/modified_length_valid": len(valid_slice_pd)})
+    wandb.log({"dataset/modified_start_date_test":test_slice_pd.index[0], \
+        "dataset/modified_end_date_test":test_slice_pd.index[-1], "dataset/modified_length_test": len(test_slice_pd)})
+
     scaler = StandardScaler().fit(data[train_slice])
     data = scaler.transform(data)
     if name in ('electricity'):

@@ -55,6 +55,8 @@ if __name__ == '__main__':
 
     # Custom
     parser.add_argument('--wandb_run_name', type=str, help='device ids of multile gpus')
+    parser.add_argument('--tags', nargs='+')
+
     parser.add_argument('--step_lrs', action='store_true', help='device ids of multile gpus')
     parser.add_argument('--step_lrs_patience', type=int, default=5, help='device ids of multile gpus')
     parser.add_argument('--step_lrs_alpha', type=float, default=0.1, help='device ids of multile gpus')
@@ -63,13 +65,21 @@ if __name__ == '__main__':
     parser.add_argument('--target_col_indices', nargs='+', type=int, default=[])
     parser.add_argument('--load_ckpt', type=str, help='device ids of multile gpus')
 
+    # Start and end date
+    parser.add_argument('--start_date', type=str, help='device ids of multile gpus')
+    parser.add_argument('--end_date', type=str, help='device ids of multile gpus')
+
+    # Slices
+    parser.add_argument('--train_slice_end', type=float, default=0.6, help='device ids of multile gpus')
+    parser.add_argument('--valid_slice_end', type=float, default=0.8, help='device ids of multile gpus')
+
     args = parser.parse_args()
     
     run_name = args.method + '__' + args.dataset + '__' + name_with_datetime(args.run_name)
     if not args.wandb_run_name:
         args.wandb_run_name = args.run_name
 
-    wandb.init(entity="arjunashok", project="ts2vec", config=vars(args), name=args.wandb_run_name)
+    wandb.init(entity="arjunashok", project="ts2vec", config=vars(args), name=args.wandb_run_name, tags=args.tags)
 
     print("Method:", args.method)
     print("Dataset:", args.dataset)
@@ -91,7 +101,8 @@ if __name__ == '__main__':
         
     elif args.loader == 'forecast_csv':
         task_type = 'forecasting'
-        data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datautils.load_forecast_csv(args.dataset, load_feats=args.load_feats)
+        data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datautils.load_forecast_csv(args.dataset, load_feats=args.load_feats, start_date=args.start_date, end_date=args.end_date, train_slice_end=args.train_slice_end, \
+        valid_slice_end=args.valid_slice_end)
         train_data = data[:, train_slice]
         print("Shape of data:", data.shape)
         print("Shape of train data:", train_data.shape)
