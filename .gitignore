@@ -5,3 +5,4 @@ training/*
 scripts/_nohup
 wandb
 .vscode
+*.pkl

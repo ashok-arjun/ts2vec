@@ -6,12 +6,14 @@ import numpy as np
 import argparse
 import os
 import sys
+import json
 import time
 import datetime
 import tasks
 import wandb
 import datautils
 from utils import init_dl_program, name_with_datetime, pkl_save, data_dropout, set_seed
+from pathlib import Path
 
 from ts2vec import TS2Vec
 from cost import CoST
@@ -72,6 +74,9 @@ if __name__ == '__main__':
     # Slices
     parser.add_argument('--train_slice_end', type=float, default=0.6, help='device ids of multile gpus')
     parser.add_argument('--valid_slice_end', type=float, default=0.8, help='device ids of multile gpus')
+
+    # Specify checkpoint location to continue training / finetuning
+    parser.add_argument('--ckpt_location', type=str)
 
     args = parser.parse_args()
     
@@ -157,6 +162,9 @@ if __name__ == '__main__':
     run_dir = 'training/' + run_name
     os.makedirs(run_dir, exist_ok=True)
     
+    with open(f'{run_dir}/args.json', 'w') as f:
+        json.dump(args.__dict__, f, indent=2)
+
     t = time.time()
     
     if method == 'ts2vec':
@@ -173,6 +181,10 @@ if __name__ == '__main__':
             device=device,
             **config
         )
+
+    if args.load_ckpt:
+        model.load(args.load_ckpt)
+
     if args.train:
         loss_log = model.fit(
             train_data,
@@ -180,12 +192,14 @@ if __name__ == '__main__':
             n_iters=args.iters,
             verbose=True
         )
-        model.save(f'{run_dir}/model.pkl')
+        ckpt_location = f'{run_dir}/model.pkl'
+        if args.ckpt_location: ckpt_location = args.ckpt_location
+        ckpt_location_path = Path(ckpt_location)
+        os.makedirs(ckpt_location_path.parent.absolute(), exist_ok=True)
+        model.save(ckpt_location)
+        wandb.save(ckpt_location)
         t = time.time() - t
         print(f"\nTraining time: {datetime.timedelta(seconds=t)}\n")
-
-    if args.load_ckpt:
-        model.load(args.load_ckpt)
 
     if args.eval:
         if task_type == 'classification':

@@ -1,5 +1,6 @@
 import sys, math, random, copy
 from typing import Union, Callable, Optional, List
+import wandb
 
 import torch
 import torch.nn as nn
@@ -253,6 +254,10 @@ class CoST:
         if n_iters is None and n_epochs is None:
             n_iters = 200 if train_data.size <= 100000 else 600
 
+        print("Number of iterations:", n_iters)
+        wandb.log({"train/n_iters": n_iters})
+        if n_epochs: wandb.log({"train/n_epochs": n_epochs})
+
         if self.max_train_length is not None:
             sections = train_data.shape[1] // self.max_train_length
             if sections >= 2:
@@ -282,6 +287,8 @@ class CoST:
             cum_loss = 0
             n_epoch_iters = 0
             
+            wandb.log({"train/epoch": self.n_epochs})
+
             interrupted = False
             for batch in train_loader:
                 if n_iters is not None and self.n_iters >= n_iters:
@@ -313,6 +320,9 @@ class CoST:
 
                 if n_iters is not None:
                     adjust_learning_rate(optimizer, self.lr, self.n_iters, n_iters)
+
+                wandb.log({"train/loss": loss.item(), "train/iter": n_epoch_iters,
+                           "train/total_iter": self.n_iters})
             
             if interrupted:
                 break
@@ -325,6 +335,8 @@ class CoST:
 
             if self.after_epoch_callback is not None:
                 self.after_epoch_callback(self, cum_loss)
+
+            wandb.log({"train/epoch_loss": cum_loss})
 
             if n_epochs is not None:
                 adjust_learning_rate(optimizer, self.lr, self.n_epochs, n_epochs)
