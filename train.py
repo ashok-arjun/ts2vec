@@ -57,6 +57,7 @@ if __name__ == '__main__':
 
     # Custom
     parser.add_argument('--wandb_run_name', type=str, help='device ids of multile gpus')
+    parser.add_argument('--wandb_resume_id', type=str, help='device ids of multile gpus')
     parser.add_argument('--tags', nargs='+')
 
     parser.add_argument('--step_lrs', action='store_true', help='device ids of multile gpus')
@@ -81,10 +82,16 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     run_name = args.method + '__' + args.dataset + '__' + name_with_datetime(args.run_name)
+    
     if not args.wandb_run_name:
         args.wandb_run_name = args.run_name
 
-    wandb.init(entity="arjunashok", project="ts2vec", config=vars(args), name=args.wandb_run_name, tags=args.tags)
+    args.run_name = run_name
+
+    if args.wandb_resume_id:
+        wandb.init(entity="arjunashok", project="ts2vec", config=vars(args), resume=True, id=args.wandb_resume_id, tags=args.tags)
+    else:
+        wandb.init(entity="arjunashok", project="ts2vec", config=vars(args), name=args.wandb_run_name, tags=args.tags)
 
     print("Method:", args.method)
     print("Dataset:", args.dataset)
@@ -217,4 +224,6 @@ if __name__ == '__main__':
         pkl_save(f'{run_dir}/eval_res.pkl', eval_res)
         print('Evaluation result:', eval_res)
 
+    wandb.finish()
     print("Finished.")
+

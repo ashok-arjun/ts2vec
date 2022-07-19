@@ -45,7 +45,7 @@ def eval_forecasting(method, model, data, train_slice, valid_slice, test_slice, 
         )
     else:
         all_repr = model.encode(
-            data,
+            encoding_data,
             mode='forecasting',
             casual=True,
             sliding_length=1,

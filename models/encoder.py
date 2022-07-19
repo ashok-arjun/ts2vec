@@ -159,6 +159,7 @@ class CoSTEncoder(nn.Module):
     def forward(self, x, tcn_output=False, mask='all_true'):  # x: B x T x input_dims
         nan_mask = ~x.isnan().any(axis=-1)
         x[~nan_mask] = 0
+
         x = self.input_fc(x)  # B x T x Ch
 
         # generate & apply mask

@@ -442,17 +442,23 @@ class CoST:
         Args:
             fn (str): filename.
         '''
-        torch.save(self.net.state_dict(), fn)
-    
+        torch.save(
+            {
+                "state_dict": self.net.state_dict(),
+                "n_epochs": self.n_epochs,
+                "n_iters": self.n_iters
+            }, fn
+        )
+
     def load(self, fn):
         ''' Load the model from a file.
         
         Args:
             fn (str): filename.
         '''
-        state_dict = torch.load(fn, map_location=self.device)
-        self.net.load_state_dict(state_dict)
-
+        ckpt = torch.load(fn, map_location=self.device)
+        self.net.load_state_dict(ckpt["state_dict"])
+        print("Loaded model from epochs {} iters {}".format(ckpt["n_epochs"], ckpt["n_iters"]))
 
 def adjust_learning_rate(optimizer, lr, epoch, epochs):
     """Decay the learning rate based on schedule"""
