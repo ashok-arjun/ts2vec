@@ -15,16 +15,20 @@ def generate_pred_samples(features, data, pred_len, drop=0):
 def cal_metrics(pred, target):
     return {
         'MSE': ((pred - target) ** 2).mean(),
-        'MAE': np.abs(pred - target).mean()
+        'MAE': np.abs(pred - target).mean(),
+        'MAPE': np.mean(np.abs((pred - target) / target)) * 100
     }
     
 def eval_forecasting(method, model, data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices, \
-    padding=200):
+    padding=200, include_target=False):
 
     if target_col_indices:
         target_cols = target_col_indices
-        target_col_indices_positive = [x if x >= 0 else data.shape[2]+x for x in target_col_indices]
-        source_cols = [x for x in list(range(data.shape[2])) if x not in target_col_indices_positive]
+        if not include_target:
+            target_col_indices_positive = [x if x >= 0 else data.shape[2]+x for x in target_col_indices]
+            source_cols = [x for x in list(range(data.shape[2])) if x not in target_col_indices_positive]
+        else:
+            source_cols = list(range(0, data.shape[2]))
     else:
         target_cols = list(range(0, data.shape[2]))
         target_cols = target_cols[n_covariate_cols:]
