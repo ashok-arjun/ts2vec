@@ -47,6 +47,7 @@ class TSEncoder(nn.Module):
     def forward(self, x, mask=None):  # x: B x T x input_dims
         nan_mask = ~x.isnan().any(axis=-1)
         x[~nan_mask] = 0
+
         x = self.input_fc(x)  # B x T x Ch
         
         # generate & apply mask
@@ -104,13 +105,17 @@ class BandedFourierLayer(nn.Module):
 
     def forward(self, input):
         # input - b t d
+        # print(input.shape) # Reg: (B, 12, 320) [12 = num feats] || Forecasting: (B, 3000, 320) [3000 = ?]
+        # print(self.weight.shape) # Reg: torch.Size([13, 320, 160]) || For: torch.Size([1501, 320, 160])
+        # import pdb; pdb.set_trace()
         b, t, _ = input.shape
-        input_fft = fft.rfft(input, dim=1)
-        output_fft = torch.zeros(b, t // 2 + 1, self.out_channels, device=input.device, dtype=torch.cfloat)
+        input_fft = fft.rfft(input, dim=1) # Reg: (B, 7, 320) || Forecasting: (B, 1501, 320) [3000 = ?]
+        output_fft = torch.zeros(b, t // 2 + 1, self.out_channels, device=input.device, dtype=torch.cfloat) # Reg: (B, 7, 160)
         output_fft[:, self.start:self.end] = self._forward(input_fft)
         return fft.irfft(output_fft, n=input.size(1), dim=1)
 
     def _forward(self, input):
+        # print(input[:, self.start:self.end].shape, self.weight.shape)
         output = torch.einsum('bti,tio->bto', input[:, self.start:self.end], self.weight)
         return output + self.bias
 

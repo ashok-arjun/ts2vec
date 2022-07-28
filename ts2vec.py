@@ -92,7 +92,9 @@ class TS2Vec:
         
         train_dataset = TensorDataset(torch.from_numpy(train_data).to(torch.float))
         train_loader = DataLoader(train_dataset, batch_size=min(self.batch_size, len(train_dataset)), shuffle=True, drop_last=True)
-        
+
+        print("Train loader length:", len(train_loader))
+
         optimizer = torch.optim.AdamW(self._net.parameters(), lr=self.lr)
         
         loss_log = []
@@ -154,8 +156,10 @@ class TS2Vec:
 
                 wandb.log({"train/loss": loss.item(), "train/iter": n_epoch_iters,
                            "train/total_iter": self.n_iters})
+                # print("n_epoch_iters: {}. self.n_iters: {}".format(n_epoch_iters, self.n_iters))
 
             if interrupted:
+                print("Interrupted")
                 break
             
             cum_loss /= n_epoch_iters

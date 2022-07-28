@@ -2,6 +2,7 @@ import numpy as np
 import time
 import wandb
 from . import _eval_protocols as eval_protocols
+import matplotlib.pyplot as plt
 
 def generate_pred_samples(features, data, pred_len, drop=0):
     n = data.shape[1]
@@ -11,15 +12,22 @@ def generate_pred_samples(features, data, pred_len, drop=0):
     labels = labels[:, drop:]
     return features.reshape(-1, features.shape[-1]), \
             labels.reshape(-1, labels.shape[2]*labels.shape[3])
+def smape(A, F):
+    tmp = 2 * np.abs(F - A) / (np.abs(A) + np.abs(F))
+    len_ = np.count_nonzero(~np.isnan(tmp))
+    if len_ == 0 and np.nansum(tmp) == 0: # Deals with a special case
+        return 100
+    return 100 / len_ * np.nansum(tmp)
 
 def cal_metrics(pred, target):
     return {
         'MSE': ((pred - target) ** 2).mean(),
         'MAE': np.abs(pred - target).mean(),
-        'MAPE': np.mean(np.abs((pred - target) / target)) * 100
+        'MAPE': np.mean(np.abs((pred - target) / target)) * 100,
+        'SMAPE': smape(target, pred)
     }
     
-def eval_forecasting(method, model, data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices, \
+def eval_forecasting(args, method, model, data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices, \
     padding=200, include_target=False):
 
     if target_col_indices:
@@ -89,7 +97,29 @@ def eval_forecasting(method, model, data, train_slice, valid_slice, test_slice, 
         ori_shape = test_data.shape[0], -1, pred_len, test_data.shape[2]
         test_pred = test_pred.reshape(ori_shape)
         test_labels = test_labels.reshape(ori_shape)
-        
+
+        print("test_pred:", test_pred.shape)
+        print("test_labels:", test_labels.shape)
+
+        """
+        test_pred: (1, 7721, 24, 1)                                                                                                                                      
+        test_labels: (1, 7721, 24, 1) 
+        """
+
+        if args.plot_preds:
+            for i in range(pred_len):
+                i_ahead_forecasts = test_pred[0, :, i].reshape(-1)
+                i_ahead_gt = test_labels[:, :, i].reshape(-1)
+
+                plt.clf()
+
+                plt.plot(list(range(i_ahead_forecasts.shape[0])), i_ahead_forecasts, label = "pred")
+                plt.plot(list(range(i_ahead_gt.shape[0])), i_ahead_gt, label = "gt")
+
+                plt.legend()
+
+                wandb.log({"forecast_plots/pred_len_{}/{}_hour_ahead".format(pred_len, i): plt})
+
         # if test_data.shape[0] > 1:
         #     test_pred_inv = scaler.inverse_transform(test_pred.swapaxes(0, 3)).swapaxes(0, 3)
         #     test_labels_inv = scaler.inverse_transform(test_labels.swapaxes(0, 3)).swapaxes(0, 3)

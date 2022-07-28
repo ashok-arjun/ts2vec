@@ -348,7 +348,7 @@ class CoST:
         out = torch.cat([out_t[:, -1], out_s[:, -1]], dim=-1)
         return rearrange(out.cpu(), 'b d -> b () d')
     
-    def encode(self, data, mode, mask=None, encoding_window=None, casual=False, sliding_length=None, sliding_padding=0, batch_size=None):
+    def encode(self, data, mode='forecasting', mask=None, encoding_window=None, casual=False, sliding_length=None, sliding_padding=0, batch_size=None):
         if mode == 'forecasting':
             encoding_window = None
             slicing = None

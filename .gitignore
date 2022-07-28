@@ -6,3 +6,4 @@ scripts/_nohup
 wandb
 .vscode
 *.pkl
+datasets

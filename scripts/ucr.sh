@@ -1,128 +1,21 @@
-python -u train.py Chinatown UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py SonyAIBORobotSurface1 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py ItalyPowerDemand UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py MoteStrain UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py SonyAIBORobotSurface2 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py TwoLeadECG UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py SmoothSubspace UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py ECGFiveDays UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Fungi UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py CBF UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py BME UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py UMD UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py DiatomSizeReduction UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py DodgerLoopWeekend UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py DodgerLoopGame UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py GunPoint UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Coffee UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py FaceFour UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py FreezerSmallTrain UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py ArrowHead UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py ECG200 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Symbols UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py ShapeletSim UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py InsectEPGSmallTrain UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py BeetleFly UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py BirdChicken UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py ToeSegmentation1 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py ToeSegmentation2 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Wine UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Beef UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Plane UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py OliveOil UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py SyntheticControl UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py PickupGestureWiimoteZ UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py ShakeGestureWiimoteZ UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py GunPointMaleVersusFemale UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py GunPointAgeSpan UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py GunPointOldVersusYoung UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Lightning7 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py DodgerLoopDay UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py PowerCons UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py FacesUCR UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Meat UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Trace UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py MelbournePedestrian UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py MiddlePhalanxTW UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py DistalPhalanxOutlineAgeGroup UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py MiddlePhalanxOutlineAgeGroup UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py ProximalPhalanxTW UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py ProximalPhalanxOutlineAgeGroup UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py DistalPhalanxTW UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Herring UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Car UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py InsectEPGRegularTrain UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py MedicalImages UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Lightning2 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py FreezerRegularTrain UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Ham UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py MiddlePhalanxOutlineCorrect UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py DistalPhalanxOutlineCorrect UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py ProximalPhalanxOutlineCorrect UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Mallat UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py InsectWingbeatSound UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Rock UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py GesturePebbleZ1 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py SwedishLeaf UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py CinCECGTorso UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py GesturePebbleZ2 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Adiac UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py ECG5000 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py WordSynonyms UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py FaceAll UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py GestureMidAirD2 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py GestureMidAirD3 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py GestureMidAirD1 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py ChlorineConcentration UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py HouseTwenty UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Fish UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py OSULeaf UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py MixedShapesSmallTrain UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py CricketZ UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py CricketX UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py CricketY UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py FiftyWords UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Yoga UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py TwoPatterns UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py PhalangesOutlinesCorrect UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Strawberry UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py ACSF1 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py AllGestureWiimoteY UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py AllGestureWiimoteX UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py AllGestureWiimoteZ UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Wafer UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py WormsTwoClass UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Worms UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Earthquakes UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Haptics UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Computers UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py InlineSkate UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py PigArtPressure UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py PigCVP UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py PigAirwayPressure UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Phoneme UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py ScreenType UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py LargeKitchenAppliances UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py SmallKitchenAppliances UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py RefrigerationDevices UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py UWaveGestureLibraryZ UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py UWaveGestureLibraryY UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py UWaveGestureLibraryX UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py ShapesAll UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py Crop UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py SemgHandGenderCh2 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py EOGVerticalSignal UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py EOGHorizontalSignal UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py MixedShapesRegularTrain UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py SemgHandMovementCh2 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py SemgHandSubjectCh2 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py PLAID UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py UWaveGestureLibraryAll UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py ElectricDevices UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py EthanolLevel UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py StarLightCurves UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py NonInvasiveFetalECGThorax1 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py NonInvasiveFetalECGThorax2 UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py FordA UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py FordB UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
-python -u train.py HandOutlines UCR --loader UCR --batch-size 8 --repr-dims 320 --max-threads 8 --seed 42 --eval
+# python -u train.py neighbour 'neighbour_feats_cost_pretrain_dates' --loader forecast_csv \
+# --repr-dims 320 --max-threads 8 --seed 42 \
+# --train --eval --load_feats --method cost --tags 'pretraining' 'tests' \
+# --start_date '2010-08-15 15:00:00' --end_date '2015-08-15 15:00:00' \
+# --train_slice_end 0.85 --valid_slice_end 0.95
+
+# python -u train.py Changping_PM2.5 Changping_2.5_weather_20k_0.9_train --loader Monash \
+# --repr-dims 320 --max-threads 8 --seed 42 --batch-size 32  \
+# --method cost --tags 'training' 'beijing' 'tests' --target_col_indices -1 --iters 20000 \
+# --ckpt_location "trained_models/Changping_2.5_weather_20k_0.9_train_cost/model_test.pkl" --train \
+# --train_slice_end 0.9 --valid_slice_end 0.95 --max-train-length 12 --iters 2
+
+python -u train.py Changping_PM2.5 Changping_2.5_weather_20k_0.9_eval --loader Monash \
+--repr-dims 320 --max-threads 8 --seed 42 --batch-size 32  \
+--eval --method ts2vec --tags 'evaluation' 'beijing' 'tests' --target_col_indices -1 \
+--load_ckpt "trained_models/Changping_2.5_weather_20k_0.9_train/model_test.pkl" --max-train-length 12
+
+python -u train.py Changping_PM2.5 Changping_2.5_weather_20k_0.9_eval --loader Monash \
+--repr-dims 320 --max-threads 8 --seed 42 --batch-size 32  \
+--eval --method cost --tags 'evaluation' 'beijing' 'tests' --target_col_indices -1 \
+--load_ckpt "trained_models/Changping_2.5_weather_20k_0.9_train_cost/model_test.pkl" --max-train-length 12
