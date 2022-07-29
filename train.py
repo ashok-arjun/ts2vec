@@ -106,6 +106,7 @@ if __name__ == '__main__':
     method = args.method
     device = init_dl_program(args.gpu, seed=args.seed, max_threads=args.max_threads)
     
+    pred_lens = [24, 48, 168, 336, 720]
     print('Loading data... ', end='')
     if args.loader == 'UCR':
         task_type = 'classification'
@@ -115,12 +116,28 @@ if __name__ == '__main__':
         print("Shape of test_data:", test_data.shape)
         print("Shape of test_labels:", test_labels.shape)
 
-    elif args.loader == 'Monash':
-        task_type = 'regression'
-        data_full, data, train_slice, valid_slice, test_slice, scaler, n_covariate_cols = datautils.load_BeijingAirQuality(args.dataset, \
-            args.target_col_indices, args.include_target, \
-            train_slice_end=args.train_slice_end, valid_slice_end=args.valid_slice_end)
+    elif args.loader.startswith('PM2.5') or args.loader.startswith('PM10') or args.loader == 'BeijingWD':
+        if args.loader.endswith('forecasting'):
+            task_type = 'forecasting'
+        elif args.loader == 'BeijingWD':
+            task_type = 'classification_custom'
+        else:
+            task_type = 'regression'
+
+        if args.loader.startswith('PM2.5'):
+            args.loader = 'PM2.5'
+        elif args.loader.startswith('PM10'):
+            args.loader = 'PM10'
+        elif args.loader == 'BeijingWD':
+            args.loader = 'WD'
+
+        data_full, data, train_slice, valid_slice, test_slice, scaler, n_covariate_cols = datautils.load_BeijingAirQuality(args.loader, args.dataset, \
+        args.target_col_indices, args.include_target, \
+        train_slice_end=args.train_slice_end, valid_slice_end=args.valid_slice_end, task_type=task_type)
         train_data = data[:, train_slice]
+        train_data = data[:, train_slice]
+        print("Shape of data:", data.shape)
+        print("Shape of train data:", train_data.shape)
 
     elif args.loader == 'UEA':
         task_type = 'classification'
@@ -166,6 +183,8 @@ if __name__ == '__main__':
     else:
         raise ValueError(f"Unknown loader {args.loader}.")
     
+    print("task type:", task_type)
+
     if args.irregular > 0:
         if task_type == 'classification':
             train_data = data_dropout(train_data, args.irregular)
@@ -195,7 +214,8 @@ if __name__ == '__main__':
     
     input_dims = train_data.shape[-1]
     if not args.include_target and task_type == 'forecasting':
-        input_dims -= len(args.target_col_indices)
+        if not (args.loader.startswith('PM2.5') or args.loader.startswith('PM10')):
+            input_dims -= len(args.target_col_indices)
     print("Total input_dims:", input_dims)
     if method == 'ts2vec':
         model = TS2Vec(
@@ -234,9 +254,12 @@ if __name__ == '__main__':
     if args.eval:
         if task_type == 'classification':
             out, eval_res = tasks.eval_classification(model, train_data, train_labels, test_data, test_labels, eval_protocol='svm')
+        elif task_type == "classification_custom":
+            out, eval_res = tasks.eval_classification_custom(args, model, data_full, train_slice, valid_slice, test_slice, \
+                target_col_indices=args.target_col_indices, include_target=args.include_target)
         elif task_type == 'forecasting':
             padding = 200 if method == 'ts2vec' else args.max_train_length - 1
-            out, eval_res = tasks.eval_forecasting(args, method, model, data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices=args.target_col_indices, padding=padding, include_target=args.include_target)
+            out, eval_res = tasks.eval_forecasting(args, method, model, data_full, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices=args.target_col_indices, padding=padding, include_target=args.include_target)
         elif task_type == 'anomaly_detection':
             out, eval_res = tasks.eval_anomaly_detection(model, all_train_data, all_train_labels, all_train_timestamps, all_test_data, all_test_labels, all_test_timestamps, delay)
         elif task_type == 'anomaly_detection_coldstart':

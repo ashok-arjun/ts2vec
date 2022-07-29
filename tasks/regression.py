@@ -20,10 +20,6 @@ def cal_metrics(pred, target):
         'SMAPE': smape(target, pred)
     }
 
-def eval_forecasting(method, model, data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices, \
-    padding=200, include_target=False):
-    pass
-
 def eval_regression(args, model, data, train_slice, valid_slice, test_slice, target_col_indices, include_target=False):
 
     print("data shape:", data.shape)
@@ -38,7 +34,8 @@ def eval_regression(args, model, data, train_slice, valid_slice, test_slice, tar
         target_cols = list(range(0, data.shape[1]))
         source_cols = list(range(0, data.shape[1]))
 
-    print(source_cols, target_cols)
+    print("source cols:", source_cols)
+    print("target cols:", target_cols)
     encoding_data = data[:, source_cols, :]
     encoding_targets = data[:, target_cols, :].reshape(data.shape[0])
 

@@ -1,4 +1,4 @@
-from .classification import eval_classification
+from .classification import eval_classification, eval_classification_custom
 from .forecasting import eval_forecasting
 from .anomaly_detection import eval_anomaly_detection, eval_anomaly_detection_coldstart
 from .regression import eval_regression

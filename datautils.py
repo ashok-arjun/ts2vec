@@ -32,8 +32,8 @@ def _get_time_features(dt):
     ], axis=1).astype(np.float)
 
 
-def load_BeijingAirQuality(dataset, target_col_indices, include_target, train_slice_end=None, valid_slice_end=None, cols=None):
-    data = pd.read_csv(f'datasets/BeijingAirQualityProcessed/{dataset}.csv', index_col='date', parse_dates=True)
+def load_BeijingAirQuality(loader, dataset, target_col_indices, include_target, train_slice_end=None, valid_slice_end=None, cols=None, transform=False, task_type='regression'):
+    data = pd.read_csv(f'datasets/{loader}/{dataset}.csv', index_col='date', parse_dates=True)
     if cols: data = data[cols]
 
     start_date = data.index[0]
@@ -41,7 +41,7 @@ def load_BeijingAirQuality(dataset, target_col_indices, include_target, train_sl
     print("Startdate: {} Enddate: {}".format(start_date, end_date))
     wandb.log({"dataset/start_date":start_date, "dataset/end_date":end_date})
 
-    dt_embed = _get_time_features_beijing(data.index)
+    dt_embed = _get_time_features(data.index)
     n_covariate_cols = dt_embed.shape[-1]
 
     df_cols = data.columns
@@ -76,111 +76,58 @@ def load_BeijingAirQuality(dataset, target_col_indices, include_target, train_sl
     wandb.log({"dataset/modified_start_date_test":test_slice_pd.index[0], \
         "dataset/modified_end_date_test":test_slice_pd.index[-1], "dataset/modified_length_test": len(test_slice_pd)})
 
-    scaler = StandardScaler().fit(data[train_slice])
-    data = scaler.transform(data)
-    data = np.expand_dims(data, 2)
-    
-    data_full = data.copy()
-    print("Shape of full_data", data_full.shape)
-    if target_col_indices and not include_target:
-        target_col_indices_positive = [x if x >= 0 else data.shape[1]+x for x in target_col_indices]
-        data = data[:, [x for x in range(len(df_cols)) if x not in target_col_indices_positive]]
-    print("Shape of data", data.shape)
+    labels = data[:, [-1]].copy()
+    scaler = StandardScaler().fit(data[train_slice][:, :-1])
+    data = scaler.transform(data[:, :-1])
+    data = np.concatenate([data, labels], axis=1)
+    print("After transform:", data.shape)
 
-    if n_covariate_cols > 0:
-        print("Fitting StandardScaler to dt_embed[train_slice]...")
-        dt_scaler = StandardScaler().fit(dt_embed[train_slice])
-        dt_embed = np.expand_dims(dt_scaler.transform(dt_embed), 2)
-        data = np.concatenate([np.repeat(dt_embed, data.shape[2], axis=0), data], axis=1)
-        data_full = np.concatenate([np.repeat(dt_embed, data_full.shape[2], axis=0), data_full], axis=1)
-        print("Done.")
+    if task_type == 'forecasting':
+        data = np.expand_dims(data, 0)
+        data_full = data.copy()
+        print("Shape of full_data", data_full.shape)
+        if target_col_indices and not include_target:
+            target_col_indices_positive = [x if x >= 0 else data.shape[2]+x for x in target_col_indices]
+            data = data[:, :, [x for x in range(len(df_cols)) if x not in target_col_indices_positive]]
+        print("Shape of data", data.shape)
+        if n_covariate_cols > 0:
+            print("Fitting StandardScaler to dt_embed[train_slice]...")
+            dt_scaler = StandardScaler().fit(dt_embed[train_slice])
+            dt_embed = np.expand_dims(dt_scaler.transform(dt_embed), 0)
+            print(dt_embed.shape, data.shape)
+            data = np.concatenate([np.repeat(dt_embed, data.shape[0], axis=0), data], axis=2)
+            data_full = np.concatenate([np.repeat(dt_embed, data_full.shape[0], axis=0), data_full], axis=2)
+            print("Done.")
+    else:
+        data = np.expand_dims(data, 2)
+        data_full = data.copy()
+        print("Shape of full_data", data_full.shape)
+        if target_col_indices and not include_target:
+            target_col_indices_positive = [x if x >= 0 else data.shape[1]+x for x in target_col_indices]
+            data = data[:, [x for x in range(len(df_cols)) if x not in target_col_indices_positive]]
+        print("Shape of data", data.shape)
+        if n_covariate_cols > 0:
+            print("Fitting StandardScaler to dt_embed[train_slice]...")
+            dt_scaler = StandardScaler().fit(dt_embed[train_slice])
+            dt_embed = np.expand_dims(dt_scaler.transform(dt_embed), 2)
+            data = np.concatenate([np.repeat(dt_embed, data.shape[2], axis=0), data], axis=1)
+            data_full = np.concatenate([np.repeat(dt_embed, data_full.shape[2], axis=0), data_full], axis=1)
+            print("Done.")
+
+    if task_type.startswith("classification"):
+        targets = np.array(data_full[:, -1, 0])
+        labels = np.unique(targets)
+        transform = { k : i for i, k in enumerate(labels)}
+        targets_int = np.vectorize(transform.get)(targets)
+        data_full[:, -1, 0] = targets_int
+
+        print("Labels", targets_int)
 
     print("Added covariate columns.")
     print("Shape of data_full:", data_full.shape)
     print("Shape of data:", data.shape)
 
     return data_full, data, train_slice, valid_slice, test_slice, scaler, n_covariate_cols
-
-def load_forecast_csv(name, univar=False, load_feats=False, start_date=None, end_date=None, train_slice_end=None, \
-                    valid_slice_end=None):
-    filename = name if not load_feats else name + "_feats"
-    data = pd.read_csv(f'datasets/{filename}.csv', index_col='date', parse_dates=True)
-    print("Dataset starts at {} and ends at {}".format(data.index[0], data.index[-1]))
-    wandb.log({"dataset/start_date":data.index[0], "dataset/end_date":data.index[-1], "dataset/length": len(data)})
-
-    if not start_date:
-        start_date = data.index[0]
-    if not end_date:
-        end_date = data.index[-1]
-    print("Startdate: {} Enddate: {}".format(start_date, end_date))
-    wandb.log({"dataset/given_start_date":start_date, "dataset/given_end_date":end_date})
-
-    data = data.loc[start_date:end_date]
-    print("Modified: Dataset starts at {} and ends at {}".format(data.index[0], data.index[-1]))
-    wandb.log({"dataset/modified_start_date":data.index[0], "dataset/modified_end_date":data.index[-1], \
-        "dataset/modified_length": len(data)})
-
-    dt_embed = _get_time_features(data.index)
-    n_covariate_cols = dt_embed.shape[-1]
-
-    if univar:
-        if name in ('ETTh1', 'ETTh2', 'ETTm1', 'ETTm2'):
-            data = data[['OT']]
-        elif name == 'electricity':
-            data = data[['MT_001']]
-        elif name == 'WTH':
-            data = data[['WetBulbCelsius']]
-        else:
-            data = data.iloc[:, -1:]
-
-    data_pd = data.copy()        
-    data = data.to_numpy()
-    if name == 'ETTh1' or name == 'ETTh2':
-        train_slice = slice(None, 12*30*24)
-        valid_slice = slice(12*30*24, 16*30*24)
-        test_slice = slice(16*30*24, 20*30*24)
-    elif name == 'ETTm1' or name == 'ETTm2':
-        train_slice = slice(None, 12*30*24*4)
-        valid_slice = slice(12*30*24*4, 16*30*24*4)
-        test_slice = slice(16*30*24*4, 20*30*24*4)
-    else:
-        train_slice = slice(None, int(train_slice_end * len(data)))
-        valid_slice = slice(int(train_slice_end * len(data)), int(valid_slice_end * len(data)))
-        test_slice = slice(int(valid_slice_end * len(data)), None)
-    
-    train_slice_pd = data_pd.iloc[train_slice]
-    valid_slice_pd = data_pd.iloc[valid_slice]
-    test_slice_pd = data_pd.iloc[test_slice]
-    
-    print("Start and end dates of splits:")
-    print("Train: Start: {} End: {}".format(train_slice_pd.index[0], train_slice_pd.index[-1]))
-    print("Valid: Start: {} End: {}".format(valid_slice_pd.index[0], valid_slice_pd.index[-1]))
-    print("Test: Start: {} End: {}".format(test_slice_pd.index[0], test_slice_pd.index[-1]))
-    wandb.log({"dataset/modified_start_date_train":train_slice_pd.index[0], \
-        "dataset/modified_end_date_train":train_slice_pd.index[-1], "dataset/modified_length_train": len(train_slice_pd)})
-    wandb.log({"dataset/modified_start_date_valid":valid_slice_pd.index[0], \
-        "dataset/modified_end_date_valid":valid_slice_pd.index[-1], "dataset/modified_length_valid": len(valid_slice_pd)})
-    wandb.log({"dataset/modified_start_date_test":test_slice_pd.index[0], \
-        "dataset/modified_end_date_test":test_slice_pd.index[-1], "dataset/modified_length_test": len(test_slice_pd)})
-
-    scaler = StandardScaler().fit(data[train_slice])
-    data = scaler.transform(data)
-    if name in ('electricity'):
-        data = np.expand_dims(data.T, -1)  # Each variable is an instance rather than a feature
-    else:
-        data = np.expand_dims(data, 0)
-    
-    if n_covariate_cols > 0:
-        dt_scaler = StandardScaler().fit(dt_embed[train_slice])
-        dt_embed = np.expand_dims(dt_scaler.transform(dt_embed), 0)
-        data = np.concatenate([np.repeat(dt_embed, data.shape[0], axis=0), data], axis=-1)
-    
-    if name in ('ETTh1', 'ETTh2', 'electricity', 'WTH', 'bahia_windspeed', 'neighbour'):
-        pred_lens = [24, 48, 168, 336, 720]
-    else:
-        pred_lens = [24, 48, 96, 288, 672]
-        
-    return data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols
 
 
 def load_UCR(dataset):
@@ -267,6 +214,9 @@ def load_UEA(dataset):
     train_X, train_y = extract_data(train_data)
     test_X, test_y = extract_data(test_data)
     
+    print(train_X.shape, test_X.shape)
+    print(train_y)
+
     scaler = StandardScaler()
     scaler.fit(train_X.reshape(-1, train_X.shape[-1]))
     train_X = scaler.transform(train_X.reshape(-1, train_X.shape[-1])).reshape(train_X.shape)
@@ -276,6 +226,9 @@ def load_UEA(dataset):
     transform = { k : i for i, k in enumerate(labels)}
     train_y = np.vectorize(transform.get)(train_y)
     test_y = np.vectorize(transform.get)(test_y)
+
+    # print(train_X.shape, test_X.shape)
+    print(train_y)
     return train_X, train_y, test_X, test_y
     
     
@@ -382,10 +335,7 @@ def load_forecast_csv(name, univar=False, load_feats=False, start_date=None, end
         dt_embed = np.expand_dims(dt_scaler.transform(dt_embed), 0)
         data = np.concatenate([np.repeat(dt_embed, data.shape[0], axis=0), data], axis=-1)
     
-    if name in ('ETTh1', 'ETTh2', 'electricity', 'WTH', 'bahia_windspeed', 'neighbour'):
-        pred_lens = [24, 48, 168, 336, 720]
-    else:
-        pred_lens = [24, 48, 96, 288, 672]
+    pred_lens = [24, 48, 168, 336, 720]
         
     return data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols
 
