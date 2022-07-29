@@ -110,7 +110,6 @@ def eval_classification_custom(args, model, data, train_slice, valid_slice, test
     else:
         y_score = trained_method.predict_proba(test_repr)
 
-    y_score = trained_method.predict_proba(test_repr)
     test_labels_onehot = label_binarize(test_targets, classes=np.arange(train_targets.max()+1))
     auprc = average_precision_score(test_labels_onehot, y_score)
     
