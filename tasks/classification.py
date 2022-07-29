@@ -1,4 +1,5 @@
 import numpy as np
+import wandb
 from . import _eval_protocols as eval_protocols
 from sklearn.preprocessing import label_binarize
 from sklearn.metrics import average_precision_score
@@ -29,10 +30,7 @@ def eval_classification(model, train_data, train_labels, test_data, test_labels,
     clf = fit_clf(train_repr, train_labels)
 
     acc = clf.score(test_repr, test_labels)
-    if eval_protocol == 'linear':
-        y_score = clf.predict_proba(test_repr)
-    else:
-        y_score = clf.decision_function(test_repr)
+    y_score = clf.predict_proba(test_repr)
     test_labels_onehot = label_binarize(test_labels, classes=np.arange(train_labels.max()+1))
     auprc = average_precision_score(test_labels_onehot, y_score)
     
@@ -80,17 +78,17 @@ def eval_classification_custom(args, model, data, train_slice, valid_slice, test
     valid_targets = encoding_targets[valid_slice]
     test_targets = encoding_targets[test_slice]
 
-    methods = [eval_protocols.fit_lr, eval_protocols.fit_svm, eval_protocols.fit_knn]
-    names = ["logistic_regression", "svm", "knn"]
+    methods = [eval_protocols.fit_lr, eval_protocols.fit_knn, eval_protocols.fit_svm]
+    names = ["logistic_regression", "knn", "svm"]
     val_auprc = []
     trained_methods = []
     for method, name in zip(methods, names):
-        fit_clf = eval_protocols.fit_lr
-        clf = fit_clf(train_repr, train_targets)
-        if name == "logistic_regression":
-            y_score = clf.predict_proba(valid_repr)
-        else:
+        print("Fitting {}...".format(name))
+        clf = method(train_repr, train_targets)
+        if name == "svm":
             y_score = clf.decision_function(valid_repr)
+        else:
+            y_score = clf.predict_proba(valid_repr)
         valid_labels_onehot = label_binarize(valid_targets, classes=np.arange(train_targets.max()+1))
         auprc = average_precision_score(valid_labels_onehot, y_score)
         val_auprc.append(auprc)
@@ -106,11 +104,19 @@ def eval_classification_custom(args, model, data, train_slice, valid_slice, test
     name = names[best_clf]
 
     acc = trained_method.score(test_repr, test_targets)
-    if name == 'logistic_regression':
-        y_score = trained_method.predict_proba(test_repr)
-    else:
+
+    if name == "svm":
         y_score = trained_method.decision_function(test_repr)
+    else:
+        y_score = trained_method.predict_proba(test_repr)
+
+    y_score = trained_method.predict_proba(test_repr)
     test_labels_onehot = label_binarize(test_targets, classes=np.arange(train_targets.max()+1))
     auprc = average_precision_score(test_labels_onehot, y_score)
     
+    result = { 'acc': acc, 'auprc': auprc }
+
+    for metric, value in result.items():
+        wandb.log({"eval/{}".format(metric): value})
+
     return y_score, { 'acc': acc, 'auprc': auprc }

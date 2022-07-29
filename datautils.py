@@ -32,7 +32,8 @@ def _get_time_features(dt):
     ], axis=1).astype(np.float)
 
 
-def load_BeijingAirQuality(loader, dataset, target_col_indices, include_target, train_slice_end=None, valid_slice_end=None, cols=None, transform=False, task_type='regression'):
+def load_BeijingAirQuality(loader, dataset, target_col_indices, include_target, \
+    train_slice_start=None, train_slice_end=None, valid_slice_end=None, cols=None, transform=False, task_type='regression'):
     data = pd.read_csv(f'datasets/{loader}/{dataset}.csv', index_col='date', parse_dates=True)
     if cols: data = data[cols]
 
@@ -57,7 +58,7 @@ def load_BeijingAirQuality(loader, dataset, target_col_indices, include_target, 
     data = data.to_numpy()
 
     # Should we shuffle data before doing this?
-    train_slice = slice(None, int(train_slice_end * len(data)))
+    train_slice = slice(int(train_slice_start * len(data)), int(train_slice_end * len(data)))
     valid_slice = slice(int(train_slice_end * len(data)), int(valid_slice_end * len(data)))
     test_slice = slice(int(valid_slice_end * len(data)), None)
     
@@ -76,10 +77,14 @@ def load_BeijingAirQuality(loader, dataset, target_col_indices, include_target, 
     wandb.log({"dataset/modified_start_date_test":test_slice_pd.index[0], \
         "dataset/modified_end_date_test":test_slice_pd.index[-1], "dataset/modified_length_test": len(test_slice_pd)})
 
-    labels = data[:, [-1]].copy()
-    scaler = StandardScaler().fit(data[train_slice][:, :-1])
-    data = scaler.transform(data[:, :-1])
-    data = np.concatenate([data, labels], axis=1)
+    if task_type.startswith("classification"):
+        scale_data = data[:, :-1]
+        labels = data[:, [-1]].copy()
+    else:
+        scale_data = data
+    scaler = StandardScaler().fit(scale_data[train_slice])
+    data = scaler.transform(scale_data)
+    if task_type.startswith("classification"): data = np.concatenate([data, labels], axis=1)
     print("After transform:", data.shape)
 
     if task_type == 'forecasting':
@@ -261,7 +266,8 @@ def _get_time_features(dt):
     ], axis=1).astype(np.float)
 
 
-def load_forecast_csv(name, univar=False, load_feats=False, start_date=None, end_date=None, train_slice_end=None, \
+def load_forecast_csv(name, univar=False, load_feats=False, start_date=None, end_date=None, \
+                    train_slice_start=None, train_slice_end=None, \
                     valid_slice_end=None):
     filename = name if not load_feats else name + "_feats"
     data = pd.read_csv(f'datasets/{filename}.csv', index_col='date', parse_dates=True)
@@ -304,7 +310,7 @@ def load_forecast_csv(name, univar=False, load_feats=False, start_date=None, end
         valid_slice = slice(12*30*24*4, 16*30*24*4)
         test_slice = slice(16*30*24*4, 20*30*24*4)
     else:
-        train_slice = slice(None, int(train_slice_end * len(data)))
+        train_slice = slice(int(train_slice_start * len(data)), int(train_slice_end * len(data)))
         valid_slice = slice(int(train_slice_end * len(data)), int(valid_slice_end * len(data)))
         test_slice = slice(int(valid_slice_end * len(data)), None)
     

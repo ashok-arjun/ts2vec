@@ -74,6 +74,7 @@ if __name__ == '__main__':
     parser.add_argument('--end_date', type=str, help='device ids of multile gpus')
 
     # Slices
+    parser.add_argument('--train_slice_start', type=float, default=0., help='device ids of multile gpus')
     parser.add_argument('--train_slice_end', type=float, default=0.6, help='device ids of multile gpus')
     parser.add_argument('--valid_slice_end', type=float, default=0.8, help='device ids of multile gpus')
 
@@ -132,7 +133,7 @@ if __name__ == '__main__':
             args.loader = 'WD'
 
         data_full, data, train_slice, valid_slice, test_slice, scaler, n_covariate_cols = datautils.load_BeijingAirQuality(args.loader, args.dataset, \
-        args.target_col_indices, args.include_target, \
+        args.target_col_indices, args.include_target, train_slice_start=args.train_slice_start, \
         train_slice_end=args.train_slice_end, valid_slice_end=args.valid_slice_end, task_type=task_type)
         train_data = data[:, train_slice]
         train_data = data[:, train_slice]
@@ -149,7 +150,8 @@ if __name__ == '__main__':
         
     elif args.loader == 'forecast_csv':
         task_type = 'forecasting'
-        data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datautils.load_forecast_csv(args.dataset, load_feats=args.load_feats, start_date=args.start_date, end_date=args.end_date, train_slice_end=args.train_slice_end, \
+        data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datautils.load_forecast_csv(args.dataset, load_feats=args.load_feats, start_date=args.start_date, end_date=args.end_date, \
+        train_slice_start=args.train_slice_start, train_slice_end=args.train_slice_end, \
         valid_slice_end=args.valid_slice_end)
         train_data = data[:, train_slice]
         print("Shape of data:", data.shape)
@@ -184,6 +186,7 @@ if __name__ == '__main__':
         raise ValueError(f"Unknown loader {args.loader}.")
     
     print("task type:", task_type)
+    wandb.run.summary["task_type"] = task_type
 
     if args.irregular > 0:
         if task_type == 'classification':
