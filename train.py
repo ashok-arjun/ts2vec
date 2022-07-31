@@ -12,7 +12,7 @@ import datetime
 import tasks
 import wandb
 import datautils
-from utils import init_dl_program, name_with_datetime, pkl_save, data_dropout, set_seed
+from utils import init_dl_program, name_with_datetime, pkl_save, data_dropout, set_seed, count_parameters
 from pathlib import Path
 
 from ts2vec import TS2Vec
@@ -217,15 +217,17 @@ if __name__ == '__main__':
     
     input_dims = train_data.shape[-1]
     if not args.include_target and task_type == 'forecasting':
-        if not (args.loader.startswith('PM2.5') or args.loader.startswith('PM10')):
+        if not (args.loader.startswith('PM2.5') or args.loader.startswith('PM10')): # because?
             input_dims -= len(args.target_col_indices)
     print("Total input_dims:", input_dims)
+
     if method == 'ts2vec':
         model = TS2Vec(
             input_dims=input_dims,
             device=device,
             **config
         )
+        network = model._net
     elif method == 'cost':
         model = CoST(
             input_dims=input_dims,
@@ -234,6 +236,17 @@ if __name__ == '__main__':
             device=device,
             **config
         )
+        network = model.cost
+
+    wandb.watch(network, log="all", log_freq=100, log_graph=True)
+
+    # Print number of params
+    num_params_trainable, num_params_nontrainable = count_parameters(network)
+    total_params = num_params_trainable + num_params_nontrainable
+    print("Total number of: trainable params: {}. Non-trainable params: {}. Total params: {}".\
+        format(num_params_trainable, num_params_nontrainable, total_params))
+    wandb.log({"model/num_params_trainable": num_params_trainable, "model/num_params_nontrainable": num_params_nontrainable, \
+            "model/total_params": total_params})
 
     if args.load_ckpt:
         model.load(args.load_ckpt)

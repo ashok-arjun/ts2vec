@@ -305,6 +305,8 @@ class CoST:
 
                 optimizer.zero_grad()
 
+                print("x_q:{}. x_k:{}.", x_q.shape, x_k.shape)
+
                 loss = self.cost(x_q, x_k)
 
                 loss.backward()

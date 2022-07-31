@@ -169,7 +169,22 @@ def natural_keys(text):
     return [ atoi(c) for c in re.split(r'(\d+)', text) ]
 
 class DummyLogger:
-  def log(*args, **kwargs):
-    pass
-  def Image(*args, **kwargs):
-    pass
+    def log(*args, **kwargs):
+        pass
+    def Image(*args, **kwargs):
+        pass
+
+def count_parameters(model):
+    """
+    Counts the number of paramters
+    """
+    total_params = 0
+    params_no_grad = 0
+    for name, parameter in model.named_parameters():
+        if not parameter.requires_grad:
+            param = parameter.numel() 
+            params_no_grad += param
+            continue
+        param = parameter.numel()
+        total_params+=param
+    return total_params, params_no_grad

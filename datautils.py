@@ -104,27 +104,27 @@ def load_BeijingAirQuality(loader, dataset, target_col_indices, include_target, 
             data_full = np.concatenate([np.repeat(dt_embed, data_full.shape[0], axis=0), data_full], axis=2)
             print("Done.")
     else:
-        data = np.expand_dims(data, 2)
+        data = np.expand_dims(data, 1)
         data_full = data.copy()
         print("Shape of full_data", data_full.shape)
         if target_col_indices and not include_target:
-            target_col_indices_positive = [x if x >= 0 else data.shape[1]+x for x in target_col_indices]
-            data = data[:, [x for x in range(len(df_cols)) if x not in target_col_indices_positive]]
+            target_col_indices_positive = [x if x >= 0 else data.shape[2]+x for x in target_col_indices]
+            data = data[:, :, [x for x in range(len(df_cols)) if x not in target_col_indices_positive]]
         print("Shape of data", data.shape)
         if n_covariate_cols > 0:
             print("Fitting StandardScaler to dt_embed[train_slice]...")
             dt_scaler = StandardScaler().fit(dt_embed[train_slice])
-            dt_embed = np.expand_dims(dt_scaler.transform(dt_embed), 2)
-            data = np.concatenate([np.repeat(dt_embed, data.shape[2], axis=0), data], axis=1)
-            data_full = np.concatenate([np.repeat(dt_embed, data_full.shape[2], axis=0), data_full], axis=1)
+            dt_embed = np.expand_dims(dt_scaler.transform(dt_embed), 1)
+            data = np.concatenate([np.repeat(dt_embed, data.shape[1], axis=0), data], axis=2)
+            data_full = np.concatenate([np.repeat(dt_embed, data_full.shape[1], axis=0), data_full], axis=2)
             print("Done.")
 
     if task_type.startswith("classification"):
-        targets = np.array(data_full[:, -1, 0])
+        targets = np.array(data_full[:, 0, -1])
         labels = np.unique(targets)
         transform = { k : i for i, k in enumerate(labels)}
         targets_int = np.vectorize(transform.get)(targets)
-        data_full[:, -1, 0] = targets_int
+        data_full[:, 0, -1] = targets_int
 
         print("Labels", targets_int)
 
