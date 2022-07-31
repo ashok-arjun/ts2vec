@@ -168,6 +168,9 @@ class CoSTModel(nn.Module):
         q_s_amp, q_s_phase = self.convert_coeff(q_s_freq)
         k_s_amp, k_s_phase = self.convert_coeff(k_s_freq)
 
+        # print("q_s_amp:{}. q_s_phase:{}.", q_s_amp.shape, q_s_phase.shape)
+        # print("k_s_amp:{}. k_s_phase:{}.", k_s_amp.shape, k_s_phase.shape)
+
         seasonal_loss = self.instance_contrastive_loss(q_s_amp, k_s_amp) + \
                         self.instance_contrastive_loss(q_s_phase,k_s_phase)
         loss += (self.alpha * (seasonal_loss/2))
@@ -305,7 +308,7 @@ class CoST:
 
                 optimizer.zero_grad()
 
-                print("x_q:{}. x_k:{}.", x_q.shape, x_k.shape)
+                # print("x_q:{}. x_k:{}.", x_q.shape, x_k.shape)
 
                 loss = self.cost(x_q, x_k)
 

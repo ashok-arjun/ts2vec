@@ -43,7 +43,6 @@ def eval_forecasting(args, method, model, data, train_slice, valid_slice, test_s
         source_cols = list(range(0, data.shape[2]))
 
     encoding_data = data[:, :, source_cols]
-    print("Encoding data shape:", encoding_data.shape)
 
     t = time.time()
 
@@ -75,7 +74,10 @@ def eval_forecasting(args, method, model, data, train_slice, valid_slice, test_s
     test_data = data[:, test_slice, target_cols]
     
     print("Target columns:", target_cols)
-    print("Shape of train_data", train_data.shape)
+    print("data:{}".format(data.shape))
+    print("train_repr:{}. train_data:{}".format(train_repr.shape, train_data.shape))
+    print("valid_repr:{}. valid_data:{}".format(valid_repr.shape, valid_data.shape))
+    print("test_repr:{}. test_data:{}".format(test_repr.shape, test_data.shape))
 
     ours_result = {}
     lr_train_time = {}
@@ -85,6 +87,8 @@ def eval_forecasting(args, method, model, data, train_slice, valid_slice, test_s
         train_features, train_labels = generate_pred_samples(train_repr, train_data, pred_len, drop=padding)
         valid_features, valid_labels = generate_pred_samples(valid_repr, valid_data, pred_len)
         test_features, test_labels = generate_pred_samples(test_repr, test_data, pred_len)
+        
+        print("train_features:{}. train_labels:{}".format(train_features.shape, train_labels.shape))
         
         t = time.time()
         lr = eval_protocols.fit_ridge(train_features, train_labels, valid_features, valid_labels)

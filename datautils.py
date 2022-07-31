@@ -87,7 +87,7 @@ def load_BeijingAirQuality(loader, dataset, target_col_indices, include_target, 
     if task_type.startswith("classification"): data = np.concatenate([data, labels], axis=1)
     print("After transform:", data.shape)
 
-    if task_type == 'forecasting':
+    if task_type == 'forecasting' or task_type == 'regression_as_forecasting':
         data = np.expand_dims(data, 0)
         data_full = data.copy()
         print("Shape of full_data", data_full.shape)

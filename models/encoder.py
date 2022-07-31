@@ -109,9 +109,13 @@ class BandedFourierLayer(nn.Module):
         # print(self.weight.shape) # Reg: torch.Size([13, 320, 160]) || For: torch.Size([1501, 320, 160])
         # import pdb; pdb.set_trace()
         b, t, _ = input.shape
+        # print("input:{}".format(input.shape))
         input_fft = fft.rfft(input, dim=1) # Reg: (B, 7, 320) || Forecasting: (B, 1501, 320) [3000 = ?]
+        # print("input_fft: {}".format(input_fft.shape))
         output_fft = torch.zeros(b, t // 2 + 1, self.out_channels, device=input.device, dtype=torch.cfloat) # Reg: (B, 7, 160)
+        # print("output_fft: {}".format(output_fft.shape))
         output_fft[:, self.start:self.end] = self._forward(input_fft)
+        # print("output_fft[:, self.start:self.end]: {}".format(output_fft[:, self.start:self.end].shape))
         return fft.irfft(output_fft, n=input.size(1), dim=1)
 
     def _forward(self, input):

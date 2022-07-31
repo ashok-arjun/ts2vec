@@ -123,7 +123,8 @@ if __name__ == '__main__':
         elif args.loader == 'BeijingWD':
             task_type = 'classification_custom'
         else:
-            task_type = 'regression'
+            task_type = 'regression_as_forecasting'
+            pred_lens = [1]
 
         if args.loader.startswith('PM2.5'):
             args.loader = 'PM2.5'
@@ -238,7 +239,7 @@ if __name__ == '__main__':
         )
         network = model.cost
 
-    wandb.watch(network, log="all", log_freq=100, log_graph=True)
+    # wandb.watch(network, log="all", log_freq=100, log_graph=True)
 
     # Print number of params
     num_params_trainable, num_params_nontrainable = count_parameters(network)
@@ -273,7 +274,7 @@ if __name__ == '__main__':
         elif task_type == "classification_custom":
             out, eval_res = tasks.eval_classification_custom(args, model, data_full, train_slice, valid_slice, test_slice, \
                 target_col_indices=args.target_col_indices, include_target=args.include_target)
-        elif task_type == 'forecasting':
+        elif task_type == 'forecasting' or task_type == 'regression_as_forecasting':
             padding = 200 if method == 'ts2vec' else args.max_train_length - 1
             out, eval_res = tasks.eval_forecasting(args, method, model, data_full, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices=args.target_col_indices, padding=padding, include_target=args.include_target)
         elif task_type == 'anomaly_detection':
