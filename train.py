@@ -9,6 +9,7 @@ import sys
 import json
 import time
 import datetime
+import pandas as pd
 import tasks
 import wandb
 import datautils
@@ -84,6 +85,9 @@ if __name__ == '__main__':
     # Plot preds
     parser.add_argument('--plot_preds', action='store_true')
 
+    # Make CSV from full data train, valid and test data
+    parser.add_argument('--save_csv_dir', type=str)
+
     args = parser.parse_args()
     
     run_name = args.method + '__' + args.dataset + '__' + name_with_datetime(args.run_name)
@@ -137,9 +141,18 @@ if __name__ == '__main__':
         args.target_col_indices, args.include_target, train_slice_start=args.train_slice_start, \
         train_slice_end=args.train_slice_end, valid_slice_end=args.valid_slice_end, task_type=task_type)
         train_data = data[:, train_slice]
-        train_data = data[:, train_slice]
-        print("Shape of data:", data.shape)
-        print("Shape of train data:", train_data.shape)
+        valid_data = data[:, valid_slice]
+        test_data = data[:, test_slice]
+        print("Data:{}. Train data:{}. Valid data:{}. Test data:{}".format(data.shape, train_data.shape, \
+                                                                        valid_data.shape, test_data.shape))
+        if args.save_csv_dir:
+            print("Saving all CSV to", args.save_csv_dir)
+            os.makedirs(args.save_csv_dir, exist_ok=True)
+            pd.DataFrame(data_full[0]).to_csv(os.path.join(args.save_csv_dir, "data.csv"), index=False)
+            pd.DataFrame(train_data[0]).to_csv(os.path.join(args.save_csv_dir, "train_data.csv"), index=False)
+            pd.DataFrame(valid_data[0]).to_csv(os.path.join(args.save_csv_dir, "valid_data.csv"), index=False)
+            pd.DataFrame(test_data[0]).to_csv(os.path.join(args.save_csv_dir, "test_data.csv"), index=False)
+            exit()
 
     elif args.loader == 'UEA':
         task_type = 'classification'
