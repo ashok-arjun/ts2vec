@@ -142,8 +142,6 @@ if __name__ == '__main__':
         test_data = data[:, test_slice]
         print("Data:{}. Train data:{}. Valid data:{}. Test data: {}".\
             format(data.shape, train_data.shape, valid_data.shape, test_data.shape))
-        # pd.DataFrame(data_full[0]).to_csv(args.loader+".csv", index=False)
-        # exit()
 
     elif args.loader == 'UEA':
         task_type = 'classification'
