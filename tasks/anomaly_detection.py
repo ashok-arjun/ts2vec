@@ -1,3 +1,8 @@
+##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+## Created by: Zhihan Yue
+## This source code is licensed under the MIT-style license found in the
+## LICENSE file in the root directory of this source tree
+##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 import numpy as np
 import time
 from sklearn.metrics import f1_score, precision_score, recall_score

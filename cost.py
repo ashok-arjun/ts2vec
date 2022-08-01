@@ -1,3 +1,10 @@
+##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+## Created by: Zhihan Yue
+## Modified by: Arjun Ashok
+## Adapted from: https://github.com/salesforce/CoST/blob/main/cost.py
+## This source code is licensed under the MIT-style license found in the
+## LICENSE file in the root directory of this source tree
+##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 import sys, math, random, copy
 from typing import Union, Callable, Optional, List
 import wandb

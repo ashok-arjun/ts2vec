@@ -1,6 +1,19 @@
-# TS2Vec
+# Self-Supervised Representations of Geolocated Weather Time Series - an Evaluation and Analysis
 
-This repository contains the official implementation for the paper [TS2Vec: Towards Universal Representation of Time Series](https://arxiv.org/abs/2106.10466) (AAAI-22).
+**Author**: Arjun Ashok
+**Mentors**: Jitendra Singh, Devyani Lambhate
+
+This repository contains the code for multivariate time series representation learning based on two self-supervised learning methods, and the code for finetuning/adapting the representations for a downstream task.
+
+The supported methods are:
+1. [TS2Vec](https://arxiv.org/abs/2106.10466)
+2. [CoST](https://openreview.net/forum?id=PilZY3omXV2)
+
+The supported downstream tasks are:
+1. Multi-horizon forecasting, both univariate and multivariate
+2. Regression
+3. Classification
+4. Anomaly Detection
 
 ## Requirements
 
@@ -48,6 +61,7 @@ The detailed descriptions about the arguments are as following:
 | repr_dims | The representation dimensions (defaults to 320) |
 | gpu | The gpu no. used for training and inference (defaults to 0) |
 | eval | Whether to perform evaluation after training |
+| method | The method to use (either `cost` or `ts2vec`)
 
 (For descriptions of more arguments, run `python train.py -h`.)
 
@@ -57,6 +71,8 @@ After training and evaluation, the trained encoder, output and evaluation metric
 
 
 ## Code Example
+
+An example with TS2Vec as the method is given below:
 
 ```python
 from ts2vec import TS2Vec
@@ -92,3 +108,10 @@ test_repr = model.encode(
 )  # n_instances x n_timestamps x output_dims
 # (The timestamp t's representation vector is computed using the observations located in [t-50, t])
 ```
+
+# Acknowledgements
+
+This codebase uses parts of code from the following repositories:
+
+1. TS2Vec - https://github.com/yuezhihan/ts2vec
+2. CoST - https://github.com/salesforce/CoST

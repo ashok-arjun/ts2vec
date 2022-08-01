@@ -1,3 +1,9 @@
+##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+## Created by: Zhihan Yue
+## Modified by: Arjun Ashok
+## This source code is licensed under the MIT-style license found in the
+## LICENSE file in the root directory of this source tree
+##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 import numpy as np
 from sklearn.linear_model import Ridge
 from sklearn.svm import SVC
