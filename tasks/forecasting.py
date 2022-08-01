@@ -89,7 +89,9 @@ def eval_forecasting(args, method, model, data, train_slice, valid_slice, test_s
         test_features, test_labels = generate_pred_samples(test_repr, test_data, pred_len)
         
         print("train_features:{}. train_labels:{}".format(train_features.shape, train_labels.shape))
-        
+        print("valid_features:{}. valid_labels:{}".format(valid_features.shape, valid_labels.shape))
+        print("test_features:{}. test_labels:{}".format(test_features.shape, test_labels.shape))
+
         t = time.time()
         lr = eval_protocols.fit_ridge(train_features, train_labels, valid_features, valid_labels)
         lr_train_time[pred_len] = time.time() - t
