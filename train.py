@@ -188,6 +188,7 @@ if __name__ == '__main__':
     
     print("task type:", task_type)
     wandb.run.summary["task_type"] = task_type
+    args.task_type = task_type
 
     if args.irregular > 0:
         if task_type == 'classification':

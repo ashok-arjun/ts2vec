@@ -4,14 +4,16 @@ import wandb
 from . import _eval_protocols as eval_protocols
 import matplotlib.pyplot as plt
 
-def generate_pred_samples(features, data, pred_len, drop=0):
+def generate_pred_samples(features, data, pred_len, drop=0, regression=False):
     n = data.shape[1]
-    features = features[:, :-pred_len]
-    labels = np.stack([ data[:, i:1+n+i-pred_len] for i in range(pred_len)], axis=2)[:, 1:] # (1, feat.shape[1], pred_len, data.shape[2])
+    if not regression: features = features[:, :-pred_len]
+    labels = np.stack([ data[:, i:n+i-pred_len+1] for i in range(pred_len)], axis=2) # (1, feat.shape[1], pred_len, data.shape[2])
+    if not regression: labels = labels[:, 1:]
     features = features[:, drop:]
     labels = labels[:, drop:]
     return features.reshape(-1, features.shape[-1]), \
             labels.reshape(-1, labels.shape[2]*labels.shape[3])
+
 def smape(A, F):
     tmp = 2 * np.abs(F - A) / (np.abs(A) + np.abs(F))
     len_ = np.count_nonzero(~np.isnan(tmp))
@@ -84,9 +86,10 @@ def eval_forecasting(args, method, model, data, train_slice, valid_slice, test_s
     lr_infer_time = {}
     out_log = {}
     for pred_len in pred_lens:
-        train_features, train_labels = generate_pred_samples(train_repr, train_data, pred_len, drop=padding)
-        valid_features, valid_labels = generate_pred_samples(valid_repr, valid_data, pred_len)
-        test_features, test_labels = generate_pred_samples(test_repr, test_data, pred_len)
+        train_features, train_labels = generate_pred_samples(train_repr, train_data, pred_len, drop=padding, \
+                                                            regression='regression' in args.task_type)
+        valid_features, valid_labels = generate_pred_samples(valid_repr, valid_data, pred_len, regression='regression' in args.task_type)
+        test_features, test_labels = generate_pred_samples(test_repr, test_data, pred_len, regression='regression' in args.task_type)
         
         print("train_features:{}. train_labels:{}".format(train_features.shape, train_labels.shape))
         print("valid_features:{}. valid_labels:{}".format(valid_features.shape, valid_labels.shape))

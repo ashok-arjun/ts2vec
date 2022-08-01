@@ -389,7 +389,10 @@ class CoST:
                             right=r-ts_l if r>ts_l else 0,
                             dim=1
                         )
+                        # print(i, x_sliding.shape, x[:, max(l, 0) : min(r, ts_l)].shape, torch.isnan(x_sliding).sum())                        
+
                         if n_samples < batch_size:
+                            # out = None
                             if calc_buffer_l + n_samples > batch_size:
                                 out = self._eval_with_pooling(
                                     torch.cat(calc_buffer, dim=0),
@@ -397,6 +400,8 @@ class CoST:
                                     slicing=slicing,
                                     encoding_window=encoding_window
                                 )
+                                # print("Processed samples and cleared buffer. Input Shape:{}. Out Shape:{}".\
+                                #     format(torch.cat(calc_buffer, dim=0).shape, out.shape))
                                 reprs += torch.split(out, n_samples)
                                 calc_buffer = []
                                 calc_buffer_l = 0
@@ -410,6 +415,7 @@ class CoST:
                                 encoding_window=encoding_window
                             )
                             reprs.append(out)
+                            # print("_eval_with_pooling. Out Shape:{}".format(out.shape))
 
                     if n_samples < batch_size:
                         if calc_buffer_l > 0:
@@ -422,21 +428,25 @@ class CoST:
                             reprs += torch.split(out, n_samples)
                             calc_buffer = []
                             calc_buffer_l = 0
-                    
+                            # print("n_samples < batch_size and calc_buffer_l > 0:. Out Shape:{}".format(out.shape))
+
                     out = torch.cat(reprs, dim=1)
                     if encoding_window == 'full_series':
                         out = F.max_pool1d(
                             out.transpose(1, 2).contiguous(),
                             kernel_size = out.size(1),
                         ).squeeze(1)
+                        # print("encoding_window == 'full_series'. Out Shape:{}".format(out.shape))
                 else:
                     out = self._eval_with_pooling(x, mask, encoding_window=encoding_window)
                     if encoding_window == 'full_series':
                         out = out.squeeze(1)
-                        
+                    # print("_eval_with_pooling. Out Shape:{}".format(out.shape))
+
                 output.append(out)
                 
             output = torch.cat(output, dim=0)
+            # print("Final output after concatenation:{}".format(output.shape))
 
         self.net.train(org_training)
         return output.numpy()
