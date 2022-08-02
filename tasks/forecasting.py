@@ -77,25 +77,25 @@ def eval_forecasting(args, method, model, data, train_slice, valid_slice, test_s
     valid_repr = all_repr[:, valid_slice]
     test_repr = all_repr[:, test_slice]
     
-    train_data = data[:, train_slice, target_cols]
-    valid_data = data[:, valid_slice, target_cols]
-    test_data = data[:, test_slice, target_cols]
+    train_targets = data[:, train_slice, target_cols]
+    valid_targets = data[:, valid_slice, target_cols]
+    test_targets = data[:, test_slice, target_cols]
     
     print("Target columns:", target_cols)
     print("data:{}".format(data.shape))
-    print("train_repr:{}. train_data:{}".format(train_repr.shape, train_data.shape))
-    print("valid_repr:{}. valid_data:{}".format(valid_repr.shape, valid_data.shape))
-    print("test_repr:{}. test_data:{}".format(test_repr.shape, test_data.shape))
+    print("train_repr:{}. train_targets:{}".format(train_repr.shape, train_targets.shape))
+    print("valid_repr:{}. valid_targets:{}".format(valid_repr.shape, valid_targets.shape))
+    print("test_repr:{}. test_targets:{}".format(test_repr.shape, test_targets.shape))
 
     ours_result = {}
     lr_train_time = {}
     lr_infer_time = {}
     out_log = {}
     for pred_len in pred_lens:
-        train_features, train_labels = generate_pred_samples(train_repr, train_data, pred_len, drop=padding, \
+        train_features, train_labels = generate_pred_samples(train_repr, train_targets, pred_len, drop=padding, \
                                                             regression='regression' in args.task_type)
-        valid_features, valid_labels = generate_pred_samples(valid_repr, valid_data, pred_len, regression='regression' in args.task_type)
-        test_features, test_labels = generate_pred_samples(test_repr, test_data, pred_len, regression='regression' in args.task_type)
+        valid_features, valid_labels = generate_pred_samples(valid_repr, valid_targets, pred_len, regression='regression' in args.task_type)
+        test_features, test_labels = generate_pred_samples(test_repr, test_targets, pred_len, regression='regression' in args.task_type)
         
         print("train_features:{}. train_labels:{}".format(train_features.shape, train_labels.shape))
         print("valid_features:{}. valid_labels:{}".format(valid_features.shape, valid_labels.shape))
@@ -109,7 +109,7 @@ def eval_forecasting(args, method, model, data, train_slice, valid_slice, test_s
         test_pred = lr.predict(test_features)
         lr_infer_time[pred_len] = time.time() - t
 
-        ori_shape = test_data.shape[0], -1, pred_len, test_data.shape[2]
+        ori_shape = test_targets.shape[0], -1, pred_len, test_targets.shape[2]
         test_pred = test_pred.reshape(ori_shape)
         test_labels = test_labels.reshape(ori_shape)
 
