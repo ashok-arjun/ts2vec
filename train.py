@@ -293,8 +293,9 @@ if __name__ == '__main__':
         if task_type == 'classification':
             out, eval_res = tasks.eval_classification(model, train_data, train_labels, test_data, test_labels, eval_protocol='svm')
         elif task_type == "classification_custom":
-            out, eval_res = tasks.eval_classification_custom(args, model, data_full, train_slice, valid_slice, test_slice, \
-                target_col_indices=args.target_col_indices, include_target=args.include_target)
+            padding = 200 if method == 'ts2vec' else args.max_train_length - 1
+            out, eval_res = tasks.eval_classification_custom(args, method, model, data_full, train_slice, valid_slice, test_slice, \
+                target_col_indices=args.target_col_indices, include_target=args.include_target, padding=padding)
         elif task_type == 'forecasting' or task_type == 'regression_as_forecasting':
             padding = 200 if method == 'ts2vec' else args.max_train_length - 1
             out, eval_res = tasks.eval_forecasting(args, method, model, data_full, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices=args.target_col_indices, padding=padding, include_target=args.include_target)

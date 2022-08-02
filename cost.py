@@ -315,7 +315,7 @@ class CoST:
 
                 optimizer.zero_grad()
 
-                # print("x_q:{}. x_k:{}.", x_q.shape, x_k.shape)
+                # print("x_q:{}. x_k:{}.".format(x_q.shape, x_k.shape))
 
                 loss = self.cost(x_q, x_k)
 
@@ -380,7 +380,7 @@ class CoST:
         
         with torch.no_grad():
             output = []
-            for batch in loader:
+            for iter, batch in enumerate(loader):
                 x = batch[0]
                 if sliding_length is not None:
                     reprs = []
@@ -396,7 +396,9 @@ class CoST:
                             right=r-ts_l if r>ts_l else 0,
                             dim=1
                         )
-                        # print(i, x_sliding.shape, x[:, max(l, 0) : min(r, ts_l)].shape, torch.isnan(x_sliding).sum())                        
+                        # print("In encode. Iter:{}. Index: {}. x_sliding: {}. Number of NAN in x_sliding:{} ".format(iter, i, \
+                            # x_sliding.shape, \
+                            # torch.isnan(x_sliding).sum()))
 
                         if n_samples < batch_size:
                             # out = None
@@ -438,6 +440,7 @@ class CoST:
                             # print("n_samples < batch_size and calc_buffer_l > 0:. Out Shape:{}".format(out.shape))
 
                     out = torch.cat(reprs, dim=1)
+                    # print("Out Shape:{}".format(out.shape))
                     if encoding_window == 'full_series':
                         out = F.max_pool1d(
                             out.transpose(1, 2).contiguous(),
@@ -446,9 +449,10 @@ class CoST:
                         # print("encoding_window == 'full_series'. Out Shape:{}".format(out.shape))
                 else:
                     out = self._eval_with_pooling(x, mask, encoding_window=encoding_window)
+                    # print("sliding_length is None. Out Shape:{}".format(out.shape))
                     if encoding_window == 'full_series':
                         out = out.squeeze(1)
-                    # print("_eval_with_pooling. Out Shape:{}".format(out.shape))
+                    # print("sliding_length is None. encoding_window == 'full_series'. Out Shape:{}".format(out.shape))
 
                 output.append(out)
                 

@@ -51,6 +51,7 @@ def eval_forecasting(args, method, model, data, train_slice, valid_slice, test_s
         source_cols = list(range(0, data.shape[2]))
 
     encoding_data = data[:, :, source_cols]
+    print("Encoding data shape:", encoding_data.shape)
 
     t = time.time()
 
