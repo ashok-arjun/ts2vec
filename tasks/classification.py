@@ -73,7 +73,7 @@ def eval_classification_custom(args, method, model, data, train_slice, valid_sli
 
     if not args.train and not args.load_ckpt:
         print("Using data as representations")
-        repr = encoding_data.reshape(encoding_data.shape[0], encoding_data.shape[1])
+        repr = encoding_data.reshape(encoding_data.shape[1], encoding_data.shape[2])
     else:
         if method == 'ts2vec':
             repr = model.encode(

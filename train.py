@@ -95,6 +95,9 @@ if __name__ == '__main__':
     # Make CSV from full data train, valid and test data
     parser.add_argument('--save_csv_dir', type=str)
 
+    # TS2Vec eval with 200 or max_train_length - 1
+    parser.add_argument('--ts2vec_eval_padding', type=int)
+
     args = parser.parse_args()
     
     run_name = args.method + '__' + args.dataset + '__' + name_with_datetime(args.run_name)
@@ -270,6 +273,10 @@ if __name__ == '__main__':
     wandb.log({"model/num_params_trainable": num_params_trainable, "model/num_params_nontrainable": num_params_nontrainable, \
             "model/total_params": total_params})
 
+    # Set param for TS2Vec
+    if not args.ts2vec_eval_padding:
+        args.ts2vec_eval_padding = 200
+
     if args.load_ckpt:
         model.load(args.load_ckpt)
 
@@ -293,11 +300,11 @@ if __name__ == '__main__':
         if task_type == 'classification':
             out, eval_res = tasks.eval_classification(model, train_data, train_labels, test_data, test_labels, eval_protocol='svm')
         elif task_type == "classification_custom":
-            padding = 200 if method == 'ts2vec' else args.max_train_length - 1
+            padding = args.ts2vec_eval_padding if method == 'ts2vec' else args.max_train_length - 1
             out, eval_res = tasks.eval_classification_custom(args, method, model, data_full, train_slice, valid_slice, test_slice, \
                 target_col_indices=args.target_col_indices, include_target=args.include_target, padding=padding)
         elif task_type == 'forecasting' or task_type == 'regression_as_forecasting':
-            padding = 200 if method == 'ts2vec' else args.max_train_length - 1
+            padding = args.ts2vec_eval_padding if method == 'ts2vec' else args.max_train_length - 1
             out, eval_res = tasks.eval_forecasting(args, method, model, data_full, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices=args.target_col_indices, padding=padding, include_target=args.include_target)
         elif task_type == 'anomaly_detection':
             out, eval_res = tasks.eval_anomaly_detection(model, all_train_data, all_train_labels, all_train_timestamps, all_test_data, all_test_labels, all_test_timestamps, delay)
