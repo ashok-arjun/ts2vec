@@ -77,16 +77,29 @@ done
 #     --train_slice_end 0.6 --valid_slice_end 0.8
 # done
 
-# RUN_NAME="Changping_PM2.5_ts2vec_pretraining_debug_regres"
-# python -u train.py Changping_PM2.5 $RUN_NAME --loader 'PM2.5' \
+# METHOD='ts2vec'
+# dims=512
+# for iters in 10000 20000 30000
+# do
+#     RUN_NAME="${METHOD}_unsupervised_trainend_0.6_dims_${dims}_iters_${iters}"
+#     python -u train.py Changping_PM2.5 $RUN_NAME --loader 'PM2.5_forecasting' \
+#     --repr-dims $dims --max-threads 8 --seed 42 --batch-size 32  \
+#     --method $METHOD --tags 'pretraining' 'beijing' 'paper' 'modified-ts' --target_col_indices -1 \
+#     --ckpt_location "trained_models_Changping/${RUN_NAME}/model.pkl" \
+#     --max-train-length 24 --iters $iters --train \
+#     --train_slice_end 0.6 --valid_slice_end 0.8
+# done
+
+# RUN_NAME="Changping_PM2.5_cost_pretraining_debug_forecasting"
+# python -u train.py Changping_PM2.5 $RUN_NAME --loader 'PM2.5_forecasting' \
 # --repr-dims 320 --max-threads 8 --seed 42 --batch-size 32  \
-# --method ts2vec --tags 'pretraining' 'beijing' 'paper' 'modified-ts' --target_col_indices -1 \
+# --method cost --tags 'tests' --target_col_indices -1 \
 # --ckpt_location "trained_models_Changping/${RUN_NAME}/model.pkl" \
 # --max-train-length 24 --iters 2 --train --eval
 
-# RUN_NAME="Changping_PM2.5_ts2vec_pretraining_debug_forecast"
-# python -u train.py Changping_PM2.5 $RUN_NAME --loader 'PM2.5_forecasting' \
+# RUN_NAME="Changping_WD_cost_pretraining_debug_classification_no_fullseries"
+# python -u train.py Changping_WD $RUN_NAME --loader 'BeijingWD' \
 # --repr-dims 320 --max-threads 8 --seed 42 --batch-size 32  \
-# --method ts2vec --tags 'pretraining' 'beijing' 'paper' 'modified-ts' --target_col_indices -1 \
+# --method cost --tags 'tests' --target_col_indices -1 \
 # --ckpt_location "trained_models_Changping/${RUN_NAME}/model.pkl" \
 # --max-train-length 24 --iters 2 --train --eval

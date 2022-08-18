@@ -10,6 +10,8 @@ import wandb
 from . import _eval_protocols as eval_protocols
 import matplotlib.pyplot as plt
 
+# def make_window
+
 def generate_pred_samples(features, data, pred_len, drop=0, regression=False):
     n = data.shape[1]
     if not regression: features = features[:, :-pred_len]
@@ -51,26 +53,41 @@ def eval_forecasting(args, method, model, data, train_slice, valid_slice, test_s
         source_cols = list(range(0, data.shape[2]))
 
     encoding_data = data[:, :, source_cols]
+    print("Encoding data shape:", encoding_data.shape)
+    # Encoding data shape: (1, 32681, 12)
 
     t = time.time()
 
-    if method == 'ts2vec':
-        all_repr = model.encode(
-            encoding_data,
-            casual=True,
-            sliding_length=1,
-            sliding_padding=padding,
-            batch_size=256
-        )
+    # if not args.train and not args.load_ckpt:
+    #     print("Using data as representations")
+    #     train_repr = encoding_data[:, train_slice]
+    #     valid_repr = encoding_data[:, valid_slice]
+    #     test_repr = encoding_data[:, test_slice]
+    #     repr = encoding_data.reshape(encoding_data.shape[0], encoding_data.shape[1])
+    # else:
+    #     repr = model.encode(encoding_data, encoding_window='full_series' if encoding_targets.ndim == 1 else None)
+    
+    if not args.train and not args.load_ckpt:
+        print("Using data as representations")
+        all_repr = encoding_data
     else:
-        all_repr = model.encode(
-            encoding_data,
-            mode='forecasting',
-            casual=True,
-            sliding_length=1,
-            sliding_padding=padding,
-            batch_size=256
-        )
+        if method == 'ts2vec':
+            all_repr = model.encode(
+                encoding_data,
+                casual=True,
+                sliding_length=1,
+                sliding_padding=padding,
+                batch_size=256
+            )
+        else:
+            all_repr = model.encode(
+                encoding_data,
+                mode='forecasting',
+                casual=True,
+                sliding_length=1,
+                sliding_padding=padding,
+                batch_size=256
+            )
     ts2vec_infer_time = time.time() - t
     
     train_repr = all_repr[:, train_slice]

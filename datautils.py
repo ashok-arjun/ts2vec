@@ -93,6 +93,23 @@ def load_BeijingAirQuality(loader, dataset, target_col_indices, include_target, 
     if task_type.startswith("classification"): data = np.concatenate([data, labels], axis=1)
     print("After transform:", data.shape)
 
+    data = np.expand_dims(data, 0)
+    data_full = data.copy()
+    print("Shape of full_data", data_full.shape)
+    if target_col_indices and not include_target:
+        target_col_indices_positive = [x if x >= 0 else data.shape[2]+x for x in target_col_indices]
+        data = data[:, :, [x for x in range(len(df_cols)) if x not in target_col_indices_positive]]
+    print("Shape of data", data.shape)
+    if n_covariate_cols > 0:
+        print("Fitting StandardScaler to dt_embed[train_slice]...")
+        dt_scaler = StandardScaler().fit(dt_embed[train_slice])
+        dt_embed = np.expand_dims(dt_scaler.transform(dt_embed), 0)
+        print(dt_embed.shape, data.shape)
+        data = np.concatenate([np.repeat(dt_embed, data.shape[0], axis=0), data], axis=2)
+        data_full = np.concatenate([np.repeat(dt_embed, data_full.shape[0], axis=0), data_full], axis=2)
+        print("Done.")
+
+    """
     if task_type == 'forecasting' or task_type == 'regression_as_forecasting':
         data = np.expand_dims(data, 0)
         data_full = data.copy()
@@ -112,11 +129,11 @@ def load_BeijingAirQuality(loader, dataset, target_col_indices, include_target, 
     else:
         data = np.expand_dims(data, 1)
         data_full = data.copy()
-        print("Shape of full_data", data_full.shape)
+        print("Shape of full_data", data_full.shape) # Shape of data_full: (32681, 1, 13) 
         if target_col_indices and not include_target:
             target_col_indices_positive = [x if x >= 0 else data.shape[2]+x for x in target_col_indices]
             data = data[:, :, [x for x in range(len(df_cols)) if x not in target_col_indices_positive]]
-        print("Shape of data", data.shape)
+        print("Shape of data", data.shape) # Shape of data: (32681, 1, 12) 
         if n_covariate_cols > 0:
             print("Fitting StandardScaler to dt_embed[train_slice]...")
             dt_scaler = StandardScaler().fit(dt_embed[train_slice])
@@ -124,13 +141,14 @@ def load_BeijingAirQuality(loader, dataset, target_col_indices, include_target, 
             data = np.concatenate([np.repeat(dt_embed, data.shape[1], axis=0), data], axis=2)
             data_full = np.concatenate([np.repeat(dt_embed, data_full.shape[1], axis=0), data_full], axis=2)
             print("Done.")
-
+    """
+    
     if task_type.startswith("classification"):
-        targets = np.array(data_full[:, 0, -1])
+        targets = np.array(data_full[0, :, -1])
         labels = np.unique(targets)
         transform = { k : i for i, k in enumerate(labels)}
         targets_int = np.vectorize(transform.get)(targets)
-        data_full[:, 0, -1] = targets_int
+        data_full[0, :, -1] = targets_int
 
         print("Labels", targets_int)
 
