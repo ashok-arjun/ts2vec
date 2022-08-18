@@ -25,7 +25,7 @@ def cal_metrics(pred, target):
         'SMAPE': smape(target, pred)
     }
 
-def eval_regression(args, model, data, train_slice, valid_slice, test_slice, target_col_indices, include_target=False):
+def eval_regression(args, model, data, train_slice, valid_slice, test_slice, target_col_indices, include_target=False, regression_protocol="ridge"):
 
     print("data shape:", data.shape)
     if target_col_indices:
@@ -71,8 +71,12 @@ def eval_regression(args, model, data, train_slice, valid_slice, test_slice, tar
     valid_targets = encoding_targets[valid_slice]
     test_targets = encoding_targets[test_slice]
 
-    lr = eval_protocols.fit_ridge(train_repr, train_targets, valid_repr, valid_targets)
-    
+    print("Regression protocol:",regression_protocol)
+    if regression_protocol == "ridge":
+        lr = eval_protocols.fit_ridge(train_repr, train_targets, valid_repr, valid_targets)
+    elif regression_protocol == "neural_network":
+        lr = eval_protocols.fit_neural_network(train_repr, train_targets, valid_repr, valid_targets)
+
     test_pred = lr.predict(test_repr)
     print("test_pred:", test_pred.shape)
 

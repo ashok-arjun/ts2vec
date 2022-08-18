@@ -38,7 +38,7 @@ def cal_metrics(pred, target):
     }
     
 def eval_forecasting(args, method, model, data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices, \
-    padding=200, include_target=False):
+    padding=200, include_target=False, protocol="ridge"):
 
     if target_col_indices:
         target_cols = target_col_indices
@@ -119,7 +119,13 @@ def eval_forecasting(args, method, model, data, train_slice, valid_slice, test_s
         print("test_features:{}. test_labels:{}".format(test_features.shape, test_labels.shape))
 
         t = time.time()
-        lr = eval_protocols.fit_ridge(train_features, train_labels, valid_features, valid_labels)
+
+        print("Protocol:",protocol)
+        if protocol == "ridge":
+            lr = eval_protocols.fit_ridge(train_features, train_labels, valid_features, valid_labels)
+        elif protocol == "neural_network":
+            lr = eval_protocols.fit_neural_network(train_features, train_labels, valid_features, valid_labels)
+
         lr_train_time[pred_len] = time.time() - t
         
         t = time.time()

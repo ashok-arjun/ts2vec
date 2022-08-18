@@ -98,6 +98,9 @@ if __name__ == '__main__':
     # TS2Vec eval with 200 or max_train_length - 1
     parser.add_argument('--ts2vec_eval_padding', type=int)
 
+    # Regression protocol
+    parser.add_argument('--regression_protocol', type=str, default="ridge") # Also applies for forecasting
+
     args = parser.parse_args()
     
     run_name = args.method + '__' + args.dataset + '__' + name_with_datetime(args.run_name)
@@ -305,13 +308,13 @@ if __name__ == '__main__':
                 target_col_indices=args.target_col_indices, include_target=args.include_target, padding=padding)
         elif task_type == 'forecasting' or task_type == 'regression_as_forecasting':
             padding = args.ts2vec_eval_padding if method == 'ts2vec' else args.max_train_length - 1
-            out, eval_res = tasks.eval_forecasting(args, method, model, data_full, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices=args.target_col_indices, padding=padding, include_target=args.include_target)
+            out, eval_res = tasks.eval_forecasting(args, method, model, data_full, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols, target_col_indices=args.target_col_indices, padding=padding, include_target=args.include_target, protocol=args.regression_protocol)
         elif task_type == 'anomaly_detection':
             out, eval_res = tasks.eval_anomaly_detection(model, all_train_data, all_train_labels, all_train_timestamps, all_test_data, all_test_labels, all_test_timestamps, delay)
         elif task_type == 'anomaly_detection_coldstart':
             out, eval_res = tasks.eval_anomaly_detection_coldstart(model, all_train_data, all_train_labels, all_train_timestamps, all_test_data, all_test_labels, all_test_timestamps, delay)
         elif task_type == 'regression':
-            out, eval_res = tasks.eval_regression(args, model, data_full, train_slice, valid_slice, test_slice, target_col_indices=args.target_col_indices, include_target=args.include_target)
+            out, eval_res = tasks.eval_regression(args, model, data_full, train_slice, valid_slice, test_slice, target_col_indices=args.target_col_indices, include_target=args.include_target, regression_protocol=args.regression_protocol)
         else:
             assert False
         pkl_save(f'{run_dir}/out.pkl', out)
