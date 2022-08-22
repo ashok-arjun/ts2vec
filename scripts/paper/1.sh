@@ -5,7 +5,7 @@ CKPT_FOLDER_NAME="trained_models_Changping_ERA5"
 
 for METHOD in 'cost'
 do
-    for iters in 20000 30000
+    for iters in 10000 30000
     do
         for dims in 512
         do
