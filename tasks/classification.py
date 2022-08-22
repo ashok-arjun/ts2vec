@@ -120,13 +120,18 @@ def eval_classification_custom(args, method, model, data, train_slice, valid_sli
 
     # methods = [eval_protocols.fit_lr, eval_protocols.fit_knn, eval_protocols.fit_svm]
     # names = ["logistic_regression", "knn", "svm"]
-    methods = [eval_protocols.fit_lr, eval_protocols.fit_knn]
-    names = ["logistic_regression", "knn"]
+    methods = [eval_protocols.fit_lr, eval_protocols.fit_knn, eval_protocols.fit_neural_network]
+    names = ["logistic_regression", "knn", "neural_network"]
+    # methods = [eval_protocols.fit_neural_network]
+    # names = ["neural_network"]
     val_auprc = []
     trained_methods = []
     for method, name in zip(methods, names):
         print("Fitting {}...".format(name))
-        clf = method(train_repr, train_targets)
+        if name == "neural_network":
+            clf = method(train_repr, train_targets, valid_repr, valid_targets, task='classification')
+        else:
+            clf = method(train_repr, train_targets)
         if name == "svm":
             y_score = clf.decision_function(valid_repr)
         else:

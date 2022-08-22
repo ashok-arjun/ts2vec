@@ -12,7 +12,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import GridSearchCV, train_test_split
-from sklearn.neural_network import MLPRegressor
+from sklearn.neural_network import MLPRegressor, MLPClassifier
 
 def fit_svm(features, y, MAX_SAMPLES=10000):
     nb_classes = np.unique(y, return_counts=True)[1].shape[0]
@@ -116,7 +116,7 @@ def fit_ridge(train_features, train_y, valid_features, valid_y, MAX_SAMPLES=1000
 
     return best_lr
 
-def fit_neural_network(train_features, train_y, valid_features, valid_y, MAX_SAMPLES=100000):
+def fit_neural_network(train_features, train_y, valid_features, valid_y, MAX_SAMPLES=100000, task='regression'):
     # If the training set is too large, subsample MAX_SAMPLES examples
     if train_features.shape[0] > MAX_SAMPLES:
         split = train_test_split(
@@ -137,7 +137,10 @@ def fit_neural_network(train_features, train_y, valid_features, valid_y, MAX_SAM
     lrs = []
     valid_results = []
     for hidden in hiddens:
-        lr = MLPRegressor(hidden_layer_sizes=hidden).fit(train_features, train_y)
+        if task == 'regression':
+            lr = MLPRegressor(hidden_layer_sizes=hidden, max_iter=1000).fit(train_features, train_y)
+        elif task == 'classification':
+            lr = MLPClassifier(hidden_layer_sizes=hidden, max_iter=1000).fit(train_features, train_y)
         valid_pred = lr.predict(valid_features)
         score = np.sqrt(((valid_pred - valid_y) ** 2).mean()) + np.abs(valid_pred - valid_y).mean()
         valid_results.append(score)

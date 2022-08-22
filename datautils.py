@@ -52,6 +52,7 @@ def load_BeijingAirQuality(loader, dataset, target_col_indices, include_target, 
     n_covariate_cols = dt_embed.shape[-1]
 
     df_cols = data.columns
+    print("Columns in the dataset:", df_cols)
     if target_col_indices: 
         target_col_indices_positive = [x if x >= 0 else len(data.columns)+x for x in target_col_indices]
         source_cols = [x for i,x in enumerate(df_cols) if i not in target_col_indices_positive]
@@ -276,19 +277,6 @@ def load_forecast_npy(name, univar=False):
 
     pred_lens = [24, 48, 96, 288, 672]
     return data, train_slice, valid_slice, test_slice, scaler, pred_lens, 0
-
-
-def _get_time_features(dt):
-    return np.stack([
-        dt.minute.to_numpy(),
-        dt.hour.to_numpy(),
-        dt.dayofweek.to_numpy(),
-        dt.day.to_numpy(),
-        dt.dayofyear.to_numpy(),
-        dt.month.to_numpy(),
-        dt.weekofyear.to_numpy(),
-    ], axis=1).astype(np.float)
-
 
 def load_forecast_csv(name, univar=False, load_feats=False, start_date=None, end_date=None, \
                     train_slice_start=None, train_slice_end=None, \

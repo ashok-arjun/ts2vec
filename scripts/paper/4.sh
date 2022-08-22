@@ -24,7 +24,7 @@ do
                     EVAL_RUN_NAME="${METHOD}_unsupervised_model_eval_dims_${dims}_iters_${iters}_downStream_train_start_${downstart}_protocol_${protocol}"
                     python -u train.py Changping_PM2.5_With_ERA5 "${EVAL_RUN_NAME}" --loader 'PM2.5' \
                     --repr-dims $dims --max-threads 8 --seed 42 --batch-size 32  \
-                    --method $METHOD --tags 'Beijing-ERA5-Evaluation' 'tests' --target_col_indices -1 \
+                    --method $METHOD --tags 'Beijing-ERA5-Evaluation' --target_col_indices -1 \
                     --load_ckpt "${CKPT_FOLDER_NAME}/${RUN_NAME}/model.pkl" \
                     --max-train-length 201 --eval \
                     --train_slice_start $downstart --regression_protocol $protocol
