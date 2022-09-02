@@ -68,7 +68,7 @@ class TS2Vec:
         ''' Training the TS2Vec model.
         
         Args:
-            train_data (numpy.ndarray): The training data. It should have a shape of (n_instance, n_timestamps, n_features). All missing data should be set to NaN.
+            train_data (numpy.ndarray): The training data. It should have a shape of (n_instance, n_timestamps, n_features). All missing data should be set to NaN. (1, 19608, 12)
             n_epochs (Union[int, NoneType]): The number of epochs. When this reaches, the training stops.
             n_iters (Union[int, NoneType]): The number of iterations. When this reaches, the training stops. If both n_epochs and n_iters are not specified, a default setting would be used that sets n_iters to 200 for a dataset with size <= 100000, 600 otherwise.
             verbose (bool): Whether to print the training loss after each epoch.
@@ -126,13 +126,14 @@ class TS2Vec:
                     x = x[:, window_offset : window_offset + self.max_train_length]
                 x = x.to(self.device)
                 
-                ts_l = x.size(1)
-                crop_l = np.random.randint(low=2 ** (self.temporal_unit + 1), high=ts_l+1)
-                crop_left = np.random.randint(ts_l - crop_l + 1)
-                crop_right = crop_left + crop_l
-                crop_eleft = np.random.randint(crop_left + 1)
-                crop_eright = np.random.randint(low=crop_right, high=ts_l + 1)
-                crop_offset = np.random.randint(low=-crop_eleft, high=ts_l - crop_eright + 1, size=x.size(0))
+                ts_l = x.size(1) # 201
+                crop_l = np.random.randint(low=2 ** (self.temporal_unit + 1), high=ts_l+1) # 66
+                crop_left = np.random.randint(ts_l - crop_l + 1)  # 49
+                crop_right = crop_left + crop_l  # 115
+                crop_eleft = np.random.randint(crop_left + 1)  # 21
+                crop_eright = np.random.randint(low=crop_right, high=ts_l + 1)  # 173
+                crop_offset = np.random.randint(low=-crop_eleft, high=ts_l - crop_eright + 1, size=x.size(0)) 
+                             # N elements from -21 to 29
                 
                 optimizer.zero_grad()
                 
